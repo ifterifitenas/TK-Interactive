@@ -8,6 +8,7 @@ import { useHabit } from "@/lib/useHabit";
 export default function VideoPage() {
   const habit = useHabit();
   const [videoError, setVideoError] = useState(false);
+  const [videoWatched, setVideoWatched] = useState(false);
   if (!habit) notFound();
 
   const hasVideo = habit.id === 1;
@@ -42,6 +43,7 @@ export default function VideoPage() {
                 poster="/bangun-pagi-poster.jpg"
                 src="/bangun-pagi-web.mp4"
                 onError={() => setVideoError(true)}
+                onEnded={() => setVideoWatched(true)}
               >
                 Browser Anda tidak mendukung pemutaran video.
               </video>
@@ -52,6 +54,11 @@ export default function VideoPage() {
               <strong>{hasVideo ? "Video tidak dapat dimuat" : "Video sedang disiapkan"}</strong>
               <p>{hasVideo ? "Periksa kembali file video lalu coba lagi." : "Video untuk kebiasaan ini akan segera hadir."}</p>
             </div>
+          )}
+          {videoWatched && (
+            <Link className="video-menu-button" href={`/kebiasaan/${habit.id}/aktivitas`}>
+              MAIN <span aria-hidden>▶</span>
+            </Link>
           )}
         </section>
       </main>

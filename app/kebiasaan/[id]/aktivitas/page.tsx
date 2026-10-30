@@ -97,19 +97,29 @@ function Aktivitas({ habit: h }: { habit: Habit }) {
           <div className="sequence-board-heading"><strong>URUTKAN KEGIATANNYA</strong></div>
           <div className="sequence-cards">
             {slots.map((step, index) => (
-              <article
-                className={`sequence-card sequence-card-${index + 1}${step ? "" : " is-empty"}${draggingLabel === step?.label ? " is-dragging" : ""}`}
+              (() => {
+                const isWrong = checked && step !== null && step.label !== h.activity.sequence[index].label;
+                const isCorrect = checked && step !== null && !isWrong;
+                const isMissing = checked && step === null;
+                return (
+                  <article
+                    className={`sequence-card sequence-card-${index + 1}${step ? "" : " is-empty"}${isWrong ? " is-wrong" : ""}${isCorrect ? " is-correct" : ""}${isMissing ? " is-missing" : ""}${draggingLabel === step?.label ? " is-dragging" : ""}`}
                 data-sequence-slot={index}
                 key={step?.label ?? `empty-${index}`}
                 onPointerDown={(event) => step && startDrag(step, index, event)}
                 onPointerUp={finishDrag}
                 onPointerCancel={() => { dragging.current = null; setDraggingLabel(null); }}
-                aria-label={step ? `${index + 1}. ${step.label}` : `Slot urutan ${index + 1} kosong`}
-              >
-                <div className="sequence-picture" aria-hidden>{step?.emoji ?? "?"}</div>
-                <div className="sequence-number">{index + 1}</div>
-                <h2>{step?.label ?? "Kosong"}</h2>
-              </article>
+                aria-label={step ? `${index + 1}. ${step.label}${isWrong ? ", salah" : isCorrect ? ", benar" : ""}` : `Slot urutan ${index + 1} kosong`}
+                  >
+                    {isWrong && <span className="sequence-result">SALAH</span>}
+                    {isCorrect && <span className="sequence-result">BENAR</span>}
+                    {isMissing && <span className="sequence-result">ISI DULU</span>}
+                    <div className="sequence-picture" aria-hidden>{step?.emoji ?? "?"}</div>
+                    <div className="sequence-number">{index + 1}</div>
+                    <h2>{step?.label ?? "Kosong"}</h2>
+                  </article>
+                );
+              })()
             ))}
           </div>
         </section>

@@ -1049,17 +1049,32 @@ a:focus-visible, button:focus-visible { outline: 4px solid var(--blue); outline-
   padding: 16px 24px 24px;
   gap: 16px;
 }
+body:has(.activity-page) {
+  background: #95bdd6 url("/activity-landscape.png") center top / 100% 100% fixed no-repeat;
+}
 .activity-page {
-  --activity-ink: #1b2a4a;
-  --activity-yellow: #ffc72c;
-  --activity-cyan: #75ebfd;
+  --activity-ink: #1f3a5f;
+  --activity-yellow: #ffc83d;
+  --activity-cyan: #75dce8;
   --activity-cream: #fff6e3;
-  --activity-green: #4cb963;
-  --activity-coral: #ff6b57;
+  --activity-green: #5cc26a;
+  --activity-coral: #f26d6d;
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: calc(100vh - 40px);
+  padding: 0 0 14px;
   color: var(--activity-ink);
+}
+.activity-page::before {
+  content: "";
+  position: absolute;
+  inset: -16px -24px -24px;
+  z-index: -1;
+  border-radius: 30px;
+  background: #fff;
 }
 .activity-page .topbar {
   min-height: 78px;
@@ -1244,7 +1259,7 @@ a:focus-visible, button:focus-visible { outline: 4px solid var(--blue); outline-
   align-items: center;
   gap: 16px;
   padding: 16px 20px;
-  background: #fff;
+  background: rgba(255, 255, 255, .94);
   border: 4px solid var(--activity-ink);
   border-radius: 26px;
   box-shadow: 0 8px 0 var(--activity-ink);
@@ -1268,12 +1283,12 @@ a:focus-visible, button:focus-visible { outline: 4px solid var(--blue); outline-
 .sequence-board-heading strong { font-family: var(--font-display), sans-serif; letter-spacing: .08em; }
 .sequence-board-heading span { font-size: .9rem; }
 .sequence-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
-.sequence-card { position: relative; display: flex; flex-direction: column; align-items: center; min-height: 390px; padding: 28px 12px 14px; background: #fff; border: 4px solid #000; border-radius: 36px; box-shadow: 0 7px 0 rgba(27,42,74,.12); text-align: center; cursor: grab; touch-action: none; transition: transform .18s, box-shadow .18s, border-color .18s; }
+.sequence-card { position: relative; display: flex; flex-direction: column; align-items: center; min-height: 390px; padding: 28px 12px 14px; background: #fffdf7; border: 4px solid var(--activity-ink); border-radius: 36px; box-shadow: 0 7px 0 rgba(31,58,95,.16); text-align: center; cursor: grab; touch-action: none; transition: transform .18s, box-shadow .18s, border-color .18s; }
 .sequence-card:hover { transform: translateY(-4px); box-shadow: 0 11px 0 rgba(27,42,74,.14); }
 .sequence-card:focus-visible { outline: 4px solid #75ebfd; outline-offset: 3px; }
 .sequence-card.is-selected { border-color: var(--sequence-orange); transform: translateY(-6px) scale(1.02); box-shadow: 0 13px 0 rgba(255,159,11,.3); }
 .sequence-card.is-dragging { opacity: .72; cursor: grabbing; transform: scale(1.04) rotate(1deg); box-shadow: 0 16px 24px rgba(0,0,0,.24); }
-.sequence-picture { display: grid; place-items: center; width: 136px; height: 136px; margin: 4px auto 20px; border: 3px solid #000; border-radius: 50%; background: #fff2bd; font-size: 5.2rem; }
+.sequence-picture { display: grid; place-items: center; width: 136px; height: 136px; margin: 4px auto 20px; border: 3px solid var(--activity-ink); border-radius: 50%; background: #fff2bd; font-size: 5.2rem; }
 .sequence-card.is-empty { border-style: dashed; background: #f7f7f7; }
 .sequence-card.is-empty .sequence-picture { border-style: dashed; background: #fff; color: #777; }
 .sequence-card-2 .sequence-picture { background: #c6f0e2; }
@@ -1290,7 +1305,7 @@ a:focus-visible, button:focus-visible { outline: 4px solid var(--blue); outline-
 .sequence-pool { padding: 18px 20px 20px; background: #fff; border: 4px solid var(--activity-ink); border-radius: 26px; box-shadow: 0 8px 0 var(--activity-ink); color: var(--sequence-brown); }
 .sequence-pool > strong { display: block; margin-bottom: 14px; font-family: var(--font-display), sans-serif; letter-spacing: .08em; }
 .sequence-pool-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.sequence-pool-card { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 76px; padding: 10px; background: #fff; border: 3px solid #000; border-radius: 18px; color: var(--activity-ink); font: inherit; cursor: grab; touch-action: none; transition: transform .18s, opacity .18s, box-shadow .18s; }
+.sequence-pool-card { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 76px; padding: 10px; background: #fffdf7; border: 3px solid var(--activity-ink); border-radius: 18px; color: var(--activity-ink); font: inherit; cursor: grab; touch-action: none; transition: transform .18s, opacity .18s, box-shadow .18s; }
 .sequence-pool-card span { font-size: 2.5rem; }
 .sequence-pool-card b { font-size: .9rem; }
 .sequence-pool-card:hover { transform: translateY(-3px); box-shadow: 0 5px 0 rgba(0,0,0,.16); }
@@ -1322,6 +1337,278 @@ a:focus-visible, button:focus-visible { outline: 4px solid var(--blue); outline-
   .sequence-card h2 { font-size: .78rem; }
   .sequence-footer { flex-wrap: wrap; justify-content: center; }
   .sequence-footer .activity-feedback { order: 3; width: 100%; }
+}
+
+/* ===== Aktivitas: latar dan palet bersama beranda/peta pulau ===== */
+.activity-page {
+  --activity-ink: #4a3728;
+  --activity-yellow: #f6c343;
+  --activity-cyan: #75ebfd;
+  --activity-cream: #fff6e3;
+  --activity-green: #4cb963;
+  --activity-coral: #ff6b57;
+  --sequence-orange: #f6c343;
+  --sequence-teal: #008f78;
+  --sequence-blue: #0785c9;
+  --sequence-brown: #4a3728;
+  background: transparent;
+}
+.activity-page::before {
+  inset: -16px -24px -24px;
+  border-radius: 30px;
+  background: rgba(255, 247, 225, .08);
+}
+.activity-page .topbar,
+.sequence-intro,
+.sequence-board,
+.sequence-pool,
+.activity-footer {
+  border-color: #8c5e3c;
+  box-shadow: 0 8px 0 rgba(140, 94, 60, .9), 0 10px 24px rgba(74, 55, 40, .14);
+}
+.activity-page .topbar {
+  background: rgba(253, 251, 247, .94);
+}
+.activity-page .topbar h1,
+.sequence-board-heading,
+.sequence-pool,
+.sequence-card h2,
+.sequence-pool-card,
+.sequence-intro {
+  color: var(--activity-ink);
+}
+.activity-page .topbar .icon-btn {
+  background: var(--activity-yellow);
+  border-color: #8c5e3c;
+  color: var(--activity-ink);
+  box-shadow: 0 4px 0 #8c5e3c;
+}
+.sequence-intro,
+.sequence-board,
+.sequence-pool,
+.activity-footer {
+  background: rgba(253, 251, 247, .92);
+}
+.sequence-intro-icon {
+  background: var(--activity-cyan);
+  border-color: #8c5e3c;
+  box-shadow: 0 4px 0 #8c5e3c;
+}
+.sequence-kicker { color: #008f78; }
+.sequence-card {
+  background: rgba(255, 246, 227, .96);
+  border-color: #8c5e3c;
+  box-shadow: 0 7px 0 rgba(140, 94, 60, .22);
+}
+.sequence-card:hover {
+  box-shadow: 0 11px 0 rgba(140, 94, 60, .28);
+}
+.sequence-card.is-empty {
+  background: rgba(255, 255, 255, .72);
+}
+.sequence-card.is-empty .sequence-picture {
+  background: rgba(255, 255, 255, .72);
+}
+.sequence-picture {
+  border-color: #8c5e3c;
+  background: #ffe8a6;
+}
+.sequence-card-2 .sequence-picture { background: #c9f1e8; }
+.sequence-card-3 .sequence-picture { background: #ffdad6; }
+.sequence-card-4 .sequence-picture { background: #d9e2ff; }
+.sequence-number {
+  background: var(--activity-yellow);
+  color: var(--activity-ink);
+  border: 3px solid #8c5e3c;
+}
+.sequence-card-2 .sequence-number { background: var(--activity-green); color: #fff; }
+.sequence-card-3 .sequence-number { background: var(--activity-coral); color: #fff; }
+.sequence-card-4 .sequence-number { background: var(--sequence-blue); color: #fff; }
+.sequence-card-2 h2 { color: #005b4d; }
+.sequence-card-4 h2 { color: #075179; }
+.sequence-pool-card {
+  background: rgba(255, 255, 255, .86);
+  border-color: #8c5e3c;
+}
+.activity-feedback {
+  background: rgba(217, 226, 255, .94);
+  border-color: #8c5e3c;
+}
+.activity-feedback.success { background: var(--activity-green); }
+.activity-feedback.wrong { background: #ffc0b6; }
+.activity-check {
+  background: var(--activity-yellow);
+  border-color: #8c5e3c;
+  color: var(--activity-ink);
+  box-shadow: 0 6px 0 #8c5e3c;
+}
+.activity-check:active {
+  box-shadow: 0 2px 0 #8c5e3c;
+}
+.sequence-result {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  z-index: 1;
+  padding: 5px 12px;
+  transform: translateX(-50%);
+  border: 3px solid #8c5e3c;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 #8c5e3c;
+  color: #fff;
+  font-family: var(--font-display), sans-serif;
+  font-size: .72rem;
+  white-space: nowrap;
+}
+.sequence-card.is-wrong {
+  border-color: #c94c43;
+  background: #fff0ed;
+  box-shadow: 0 7px 0 rgba(201, 76, 67, .3);
+}
+.sequence-card.is-wrong .sequence-result {
+  background: #c94c43;
+}
+.sequence-card.is-correct {
+  border-color: var(--activity-green);
+  background: #effaf0;
+  box-shadow: 0 7px 0 rgba(76, 185, 99, .3);
+}
+.sequence-card.is-correct .sequence-result {
+  background: var(--activity-green);
+}
+.sequence-card.is-missing {
+  border-color: #d18a1c;
+  background: #fff8df;
+}
+.sequence-card.is-missing .sequence-result {
+  background: #d18a1c;
+}
+
+/* ===== Kuis dan reward: palet bersama beranda, peta pulau, dan aktivitas ===== */
+.quiz-page,
+.reward-page {
+  --game-ink: #4a3728;
+  --game-brown: #8c5e3c;
+  --game-cream: #fff6e3;
+  --game-yellow: #f6c343;
+  --game-cyan: #75ebfd;
+  --game-green: #4cb963;
+  --game-red: #ff6b57;
+}
+.quiz-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.quiz-page .topbar {
+  background: rgba(253, 251, 247, .94);
+  border-color: var(--game-brown);
+  box-shadow: 0 8px 0 var(--game-brown);
+}
+.quiz-page .topbar h1 {
+  color: var(--game-ink);
+}
+.quiz-page .topbar .icon-btn {
+  background: var(--game-yellow);
+  border-color: var(--game-brown);
+  color: var(--game-ink);
+  box-shadow: 0 4px 0 var(--game-brown);
+}
+.quiz-card {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  align-items: center;
+  background: rgba(253, 251, 247, .94);
+  border: 4px solid var(--game-brown);
+  box-shadow: 0 10px 0 rgba(140, 94, 60, .9), 0 12px 24px rgba(74, 55, 40, .14);
+}
+.quiz-card > .dots,
+.quiz-card > .quiz-top,
+.quiz-card > .options,
+.quiz-card > .actions {
+  width: 100%;
+}
+.quiz-card > .dots,
+.quiz-card > .quiz-top,
+.quiz-card > .actions {
+  justify-content: center;
+}
+.quiz-page .dot {
+  background: #e8e4dc;
+  border: 2px solid var(--game-brown);
+}
+.quiz-page .dot.on {
+  background: var(--game-yellow);
+}
+.quiz-page .prompt {
+  color: var(--game-ink);
+}
+.quiz-page .opt {
+  background: rgba(255, 246, 227, .96);
+  border-color: var(--game-brown);
+  color: var(--game-ink);
+  box-shadow: 0 5px 0 rgba(140, 94, 60, .2);
+}
+.quiz-page .opt:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 0 rgba(140, 94, 60, .25);
+}
+.quiz-page .opt.right {
+  background: #effaf0;
+  border-color: var(--game-green);
+  box-shadow: 0 5px 0 rgba(76, 185, 99, .3);
+}
+.quiz-page .opt.wrong {
+  background: #fff0ed;
+  border-color: var(--game-red);
+  box-shadow: 0 5px 0 rgba(255, 107, 87, .25);
+}
+.quiz-page .btn-yellow,
+.reward-page .btn-yellow {
+  background: var(--game-yellow);
+  border: 3px solid var(--game-brown);
+  color: var(--game-ink);
+  box-shadow: 0 6px 0 var(--game-brown);
+}
+.quiz-page .btn-yellow:active,
+.reward-page .btn-yellow:active {
+  box-shadow: 0 2px 0 var(--game-brown);
+}
+.reward-page {
+  min-height: 0;
+  width: min(100%, 620px);
+  margin: auto;
+  background: rgba(253, 251, 247, .94);
+  border: 4px solid var(--game-brown);
+  border-radius: 32px;
+  box-shadow: 0 10px 0 rgba(140, 94, 60, .9), 0 12px 24px rgba(74, 55, 40, .14);
+}
+.reward-page h1 {
+  color: var(--game-ink);
+}
+.reward-page .badge-got {
+  background: var(--game-cream);
+  border-color: var(--game-brown);
+  box-shadow: 0 5px 0 rgba(140, 94, 60, .25);
+}
+.reward-page .badge-got strong {
+  color: var(--game-ink);
+}
+.reward-page .btn-navy {
+  background: var(--game-cyan);
+  border: 3px solid var(--game-brown);
+  color: var(--game-ink);
+  box-shadow: 0 6px 0 var(--game-brown);
+}
+.reward-page .btn-soft {
+  background: #fdfbf7;
+  border: 3px solid var(--game-brown);
+  color: var(--game-ink);
+  box-shadow: 0 6px 0 var(--game-brown);
+}
+.reward-page .btn-navy:active,
+.reward-page .btn-soft:active {
+  box-shadow: 0 2px 0 var(--game-brown);
 }
 
 /* ===== Menu pilih pulau: peta stiker 7 KAIH ===== */

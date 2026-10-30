@@ -13,6 +13,7 @@ export default function TopBar({ title, back, speakText }: Props) {
           <Link className="icon-btn" href="/" aria-label="Beranda">🏠</Link>
         )}
       </div>
+      <h1>{title}</h1>
       <div className="side end">
         {speakText && <SpeakButton text={speakText} />}
       </div>

@@ -33,7 +33,7 @@ function Reward({ id }: { id: number }) {
   }, [id, h.badge.name, complete]);
 
   return (
-    <section className="reward">
+    <section className="reward reward-page">
       <div className="confetti" aria-hidden>
         {Array.from({ length: 28 }).map((_, i) => (
           <i key={i} style={{ left: `${(i * 37) % 100}%`, animationDelay: `${(i * 0.23) % 3}s`, background: COLORS[i % COLORS.length] }} />

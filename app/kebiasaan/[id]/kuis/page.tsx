@@ -56,9 +56,9 @@ function Kuis({ habit: h }: { habit: Habit }) {
   };
 
   return (
-    <>
+    <div className="quiz-page">
       <TopBar title={h.title} back={`/kebiasaan/${h.id}/aktivitas`} speakText={q.q} />
-      <section className="panel stack">
+      <section className="panel stack quiz-card">
         <div className="dots" aria-label={`Soal ${i + 1} dari ${h.quiz.length}`}>
           {h.quiz.map((_, k) => (
             <span key={k} className={k < i || (k === i && right) ? "dot on" : "dot"} aria-hidden />
@@ -91,6 +91,6 @@ function Kuis({ habit: h }: { habit: Habit }) {
           </div>
         )}
       </section>
-    </>
+    </div>
   );
 }
