@@ -103,7 +103,7 @@ export default function StoryPlayer({ habit: h }: { habit: Habit }) {
         <div className="story-cast">
           {scene.cast.map((e) => {
             const cls = speakerEmoji === null ? "" : e === speakerEmoji ? "speaking" : "dim";
-            const name = e === "👦" ? "Bima" : e === "👧" ? "Sari" : e === "👩" ? "Ibu" : e === "👨" ? "Bapak" : e === "👩‍🏫" ? "Bu Guru" : "Dodi";
+            const name = e === "👦" ? "Bima" : e === "👩" ? "Ibu" : e === "👨" ? "Bapak" : e === "👩‍🏫" ? "Bu Guru" : "Dodi";
             return (
               <div key={e} className={`story-character ${cls}`}>
                 <div className="story-character-card"><Character emoji={e} size="clamp(7rem, 19vw, 12rem)" />{speakerEmoji === e && <span className="story-speaking-badge">💬 Bicara</span>}</div>

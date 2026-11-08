@@ -2,29 +2,67 @@
 // tanpa perlu menyentuh komponen.
 
 export type Option = { emoji: string; label: string };
-export type Question = { q: string; options: Option[]; answer: number };
-export type Item = { emoji: string; label: string; correct?: boolean };
+export type Item   = { emoji: string; label: string; correct?: boolean };
 export type SequenceStep = { emoji: string; label: string };
+
+// ── Tipe soal yang tersedia ──────────────────────────────────────────────────
+/** Pilihan ganda: ketuk satu jawaban benar */
+export type QuestionChoice = {
+  type: "choice";
+  q: string;
+  options: Option[]; // 3 pilihan
+  answer: number;    // indeks jawaban benar
+};
+
+/** Pasangkan: ketuk item kiri lalu item kanan yang cocok */
+export type QuestionMatch = {
+  type: "match";
+  q: string;
+  pairs: { left: { emoji: string; label: string }; right: { emoji: string; label: string } }[];
+};
+
+/** Temukan yang benar: ketuk SEMUA item yang benar dari grid */
+export type QuestionFind = {
+  type: "find";
+  q: string;
+  items: { emoji: string; label: string; correct: boolean }[]; // campur benar & salah
+};
+
+/** Benar atau Salah: dua tombol besar */
+export type QuestionTrueFalse = {
+  type: "truefalse";
+  q: string;
+  emoji: string;  // gambar besar pendukung pernyataan
+  answer: boolean;
+};
+
+export type Question = QuestionChoice | QuestionMatch | QuestionFind | QuestionTrueFalse;
 
 export type Habit = {
   id: number;
   title: string;
-  emoji: string; // ikon di menu
-  hero: string; // karakter pendamping
-  color: string; // warna utama kebiasaan
-  soft: string; // warna latar lembut
-  story: string; // cerita singkat (dibacakan otomatis)
-  // Aktivitas: susun gambar sesuai urutan kebiasaan.
+  emoji: string;  // ikon di menu
+  image: string;  // gambar pulau di carousel (path dari /public)
+  video: string;  // path file video dari /public (kosong = belum ada)
+  poster: string; // thumbnail video (kosong = tanpa poster)
+  hero: string;   // karakter pendamping
+  color: string;  // warna utama kebiasaan
+  soft: string;   // warna latar lembut
+  story: string;  // cerita singkat (dibacakan otomatis)
   activity: { prompt: string; items: Item[]; sequence: SequenceStep[] };
-  quiz: Question[]; // answer = indeks opsi yang benar
+  quiz: Question[];
   badge: { name: string; emoji: string };
 };
 
 export const HABITS: Habit[] = [
+  // ── 1 BANGUN PAGI ───────────────────────────────────────────────────────────
   {
     id: 1,
     title: "Bangun Pagi",
     emoji: "☀️",
+    image: "/Bangun pagi.png",
+    video: "/bangun-pagi.mp4",
+    poster: "/bangun-pagi-poster.jpg",
     hero: "👦",
     color: "#ffc83d",
     soft: "#fff6d6",
@@ -44,103 +82,117 @@ export const HABITS: Habit[] = [
       ],
     },
     quiz: [
-      { q: "Kapan waktu yang baik untuk bangun tidur?", options: [{ emoji: "🌙", label: "Tengah malam" }, { emoji: "🌅", label: "Pagi hari" }, { emoji: "😴", label: "Siang bolong" }], answer: 1 },
-      { q: "Setelah bangun tidur, apa yang kita rapikan?", options: [{ emoji: "🛏️", label: "Tempat tidur" }, { emoji: "📺", label: "Televisi" }, { emoji: "🍬", label: "Permen" }], answer: 0 },
+      // 1. Pilihan ganda
+      {
+        type: "choice",
+        q: "Kapan waktu terbaik untuk bangun pagi?",
+        options: [
+          { emoji: "🌅", label: "Sebelum matahari tinggi" },
+          { emoji: "☀️", label: "Saat matahari sudah tinggi" },
+          { emoji: "🌙", label: "Tengah malam" },
+        ],
+        answer: 0,
+      },
+      // 2. Pasangkan kegiatan pagi dengan manfaatnya
+      {
+        type: "match",
+        q: "Pasangkan kegiatan pagi dengan manfaatnya!",
+        pairs: [
+          { left: { emoji: "⏰", label: "Bangun tidur" },   right: { emoji: "🌅", label: "Pagi segar" } },
+          { left: { emoji: "🛏️", label: "Rapikan kasur" },  right: { emoji: "✨", label: "Kamar rapi" } },
+          { left: { emoji: "🚿", label: "Mandi" },           right: { emoji: "💧", label: "Tubuh bersih" } },
+          { left: { emoji: "🍳", label: "Sarapan" },         right: { emoji: "⚡", label: "Badan bertenaga" } },
+        ],
+      },
+      // 3. Temukan yang benar
+      {
+        type: "find",
+        q: "Pilih semua kegiatan pagi yang baik!",
+        items: [
+          { emoji: "🪥", label: "Sikat gigi", correct: true },
+          { emoji: "🙏", label: "Berdoa", correct: true },
+          { emoji: "🎒", label: "Siapkan tas", correct: true },
+          { emoji: "📱", label: "Main HP", correct: false },
+          { emoji: "😴", label: "Tidur lagi", correct: false },
+          { emoji: "📺", label: "Nonton TV", correct: false },
+        ],
+      },
     ],
     badge: { name: "Bintang Pagi", emoji: "🌞" },
   },
+
+  // ── 2 BERIBADAH ─────────────────────────────────────────────────────────────
   {
     id: 2,
-    title: "Rajin Belajar",
-    emoji: "📖",
-    hero: "👧",
-    color: "#4c8df6",
-    soft: "#e3eeff",
-    story: "Rajin belajar membuat kita makin pintar dan bisa banyak hal baru!",
+    title: "Beribadah",
+    emoji: "🕌",
+    image: "/Beribadah.png",
+    video: "/beribadah.mp4",
+    poster: "",
+    hero: "👦",
+    color: "#a07850",
+    soft: "#f5edd6",
+    story: "Beribadah membuat hati tenang dan kita selalu bersyukur kepada Tuhan!",
     activity: {
-      prompt: "Susun kegiatan belajar Sari dari awal sampai selesai!",
+      prompt: "Susun kegiatan beribadah Bima dari awal sampai selesai!",
       items: [
-        { emoji: "🍟", label: "Kentang goreng" },
-        { emoji: "📚", label: "Buku", correct: true },
-        { emoji: "🛝", label: "Perosotan" },
+        { emoji: "🕌", label: "Beribadah", correct: true },
+        { emoji: "🎮", label: "Main game" },
+        { emoji: "📺", label: "Nonton TV" },
       ],
       sequence: [
-        { emoji: "🎒", label: "Siapkan tas" },
-        { emoji: "🏫", label: "Pergi ke sekolah" },
-        { emoji: "📚", label: "Belajar" },
-        { emoji: "✏️", label: "Mengerjakan tugas" },
+        { emoji: "🧼", label: "Berwudu" },
+        { emoji: "🕌", label: "Pergi ke masjid" },
+        { emoji: "🙏", label: "Berdoa" },
+        { emoji: "😊", label: "Hati tenang" },
       ],
     },
     quiz: [
-      { q: "Saat guru menjelaskan, kita harus...", options: [{ emoji: "👂", label: "Mendengarkan" }, { emoji: "🗣️", label: "Mengobrol" }, { emoji: "😴", label: "Tidur" }], answer: 0 },
-      { q: "Di mana kita bisa meminjam buku bacaan?", options: [{ emoji: "🛁", label: "Kamar mandi" }, { emoji: "📚", label: "Perpustakaan" }, { emoji: "🚗", label: "Jalan raya" }], answer: 1 },
+      // 1. Benar/Salah
+      {
+        type: "truefalse",
+        q: "Kita boleh melewatkan ibadah karena sedang malas.",
+        emoji: "🕌",
+        answer: false,
+      },
+      // 2. Pasangkan langkah ibadah dengan maknanya
+      {
+        type: "match",
+        q: "Pasangkan langkah ibadah dengan maknanya!",
+        pairs: [
+          { left: { emoji: "🧼", label: "Berwudu" },         right: { emoji: "💧", label: "Bersuci dulu" } },
+          { left: { emoji: "👕", label: "Pakai baju bersih" }, right: { emoji: "✨", label: "Tampil rapi" } },
+          { left: { emoji: "🙏", label: "Sholat" },           right: { emoji: "🕌", label: "Ibadah ke Tuhan" } },
+          { left: { emoji: "📿", label: "Berdoa sesudahnya" }, right: { emoji: "❤️", label: "Hati tenang" } },
+        ],
+      },
+      // 3. Pilihan ganda
+      {
+        type: "choice",
+        q: "Apa yang kita rasakan setelah beribadah dengan sungguh-sungguh?",
+        options: [
+          { emoji: "😤", label: "Jadi marah-marah" },
+          { emoji: "😩", label: "Jadi capek sekali" },
+          { emoji: "😊", label: "Hati tenang dan damai" },
+        ],
+        answer: 2,
+      },
     ],
-    badge: { name: "Bintang Pintar", emoji: "🧠" },
+    badge: { name: "Bintang Ibadah", emoji: "🕌" },
   },
+
+  // ── 3 BEROLAHRAGA ───────────────────────────────────────────────────────────
   {
     id: 3,
-    title: "Makan Sehat",
-    emoji: "🍎",
-    hero: "👦",
-    color: "#f26d6d",
-    soft: "#ffe6e6",
-    story: "Makan makanan sehat membuat tubuh kuat dan tumbuh besar!",
-    activity: {
-      prompt: "Susun kebiasaan makan sehat Bima dari awal sampai selesai!",
-      items: [
-        { emoji: "🍬", label: "Permen" },
-        { emoji: "🍟", label: "Kentang goreng" },
-        { emoji: "🍎", label: "Apel", correct: true },
-      ],
-      sequence: [
-        { emoji: "🧼", label: "Cuci tangan" },
-        { emoji: "🍽️", label: "Siapkan makanan" },
-        { emoji: "🥗", label: "Makan makanan sehat" },
-        { emoji: "🧹", label: "Rapikan meja" },
-      ],
-    },
-    quiz: [
-      { q: "Sebelum makan, kita harus...", options: [{ emoji: "📱", label: "Main HP" }, { emoji: "🧼", label: "Cuci tangan" }, { emoji: "🏃", label: "Berlari" }], answer: 1 },
-      { q: "Minuman apa yang paling sehat?", options: [{ emoji: "🥤", label: "Minuman soda" }, { emoji: "💧", label: "Air putih" }, { emoji: "🧋", label: "Minuman sangat manis" }], answer: 1 },
-    ],
-    badge: { name: "Bintang Sehat", emoji: "🍏" },
-  },
-  {
-    id: 4,
-    title: "Bersosialisasi",
-    emoji: "👫",
-    hero: "👧",
-    color: "#9b8cf0",
-    soft: "#eeeaff",
-    story: "Bersosialisasi berarti berteman dengan baik, saling menyapa, dan saling menolong.",
-    activity: {
-      prompt: "Susun cara Sari berkenalan dengan teman baru!",
-      items: [
-        { emoji: "🙈", label: "Bersembunyi" },
-        { emoji: "😠", label: "Cemberut" },
-        { emoji: "👋", label: "Menyapa", correct: true },
-      ],
-      sequence: [
-        { emoji: "👀", label: "Melihat teman" },
-        { emoji: "👋", label: "Menyapa" },
-        { emoji: "😊", label: "Tersenyum" },
-        { emoji: "🤝", label: "Berkenalan" },
-      ],
-    },
-    quiz: [
-      { q: "Teman terjatuh, kita...", options: [{ emoji: "🤝", label: "Menolong" }, { emoji: "😆", label: "Menertawakan" }, { emoji: "🚶", label: "Pergi saja" }], answer: 0 },
-      { q: "Ingin meminjam mainan teman, kita...", options: [{ emoji: "🤚", label: "Merebut" }, { emoji: "🙏", label: "Meminta izin" }, { emoji: "😡", label: "Berteriak" }], answer: 1 },
-    ],
-    badge: { name: "Bintang Sahabat", emoji: "🤗" },
-  },
-  {
-    id: 5,
-    title: "Bermain & Berolahraga",
+    title: "Berolahraga",
     emoji: "⚽",
+    image: "/Berolahraga.png",
+    video: "/Berolahraga.mp4",
+    poster: "",
     hero: "👦",
     color: "#5cc26a",
     soft: "#e4f7e7",
-    story: "Bermain dan berolahraga membuat badan kuat, gembira, dan tidak mudah sakit!",
+    story: "Berolahraga membuat badan kuat, gembira, dan tidak mudah sakit!",
     activity: {
       prompt: "Susun kegiatan olahraga Bima dari awal sampai selesai!",
       items: [
@@ -156,66 +208,285 @@ export const HABITS: Habit[] = [
       ],
     },
     quiz: [
-      { q: "Sebelum berolahraga, kita...", options: [{ emoji: "🛋️", label: "Tidur" }, { emoji: "🤸", label: "Pemanasan" }, { emoji: "🍰", label: "Makan kue" }], answer: 1 },
-      { q: "Setelah berolahraga, kita perlu...", options: [{ emoji: "💧", label: "Minum air" }, { emoji: "🍭", label: "Makan permen" }, { emoji: "📺", label: "Menonton TV" }], answer: 0 },
+      // 1. Pilihan ganda
+      {
+        type: "choice",
+        q: "Sebelum berolahraga, apa yang harus kita lakukan?",
+        options: [
+          { emoji: "🤸", label: "Pemanasan dulu" },
+          { emoji: "🛋️", label: "Tidur-tiduran" },
+          { emoji: "🍰", label: "Makan kue dulu" },
+        ],
+        answer: 0,
+      },
+      // 2. Temukan yang benar
+      {
+        type: "find",
+        q: "Pilih semua kegiatan olahraga yang baik!",
+        items: [
+          { emoji: "🏃", label: "Lari pagi", correct: true },
+          { emoji: "⚽", label: "Main bola", correct: true },
+          { emoji: "🤸", label: "Senam", correct: true },
+          { emoji: "📺", label: "Nonton TV", correct: false },
+          { emoji: "🎮", label: "Main game", correct: false },
+          { emoji: "😴", label: "Tiduran", correct: false },
+        ],
+      },
+      // 3. Benar/Salah
+      {
+        type: "truefalse",
+        q: "Minum air putih penting setelah berolahraga.",
+        emoji: "💧",
+        answer: true,
+      },
     ],
     badge: { name: "Bintang Aktif", emoji: "🏅" },
   },
+
+  // ── 4 MAKAN BERGIZI ─────────────────────────────────────────────────────────
+  {
+    id: 4,
+    title: "Makan Bergizi",
+    emoji: "🍎",
+    image: "/Makan Bergizi, Hidup Sehat.png",
+    video: "/Makan Bergizi.mp4",
+    poster: "",
+    hero: "👦",
+    color: "#f26d6d",
+    soft: "#ffe6e6",
+    story: "Makan makanan bergizi membuat tubuh kuat, sehat, dan tumbuh besar!",
+    activity: {
+      prompt: "Susun kebiasaan makan bergizi Bima dari awal sampai selesai!",
+      items: [
+        { emoji: "🍬", label: "Permen" },
+        { emoji: "🍟", label: "Kentang goreng" },
+        { emoji: "🍎", label: "Apel", correct: true },
+      ],
+      sequence: [
+        { emoji: "🧼", label: "Cuci tangan" },
+        { emoji: "🍽️", label: "Siapkan makanan" },
+        { emoji: "🥗", label: "Makan makanan bergizi" },
+        { emoji: "🧹", label: "Rapikan meja" },
+      ],
+    },
+    quiz: [
+      // 1. Temukan yang benar
+      {
+        type: "find",
+        q: "Pilih semua makanan yang bergizi dan sehat!",
+        items: [
+          { emoji: "🥦", label: "Sayuran", correct: true },
+          { emoji: "🍎", label: "Buah-buahan", correct: true },
+          { emoji: "🥚", label: "Telur", correct: true },
+          { emoji: "🍬", label: "Permen", correct: false },
+          { emoji: "🍟", label: "Kentang goreng", correct: false },
+          { emoji: "🥤", label: "Minuman soda", correct: false },
+        ],
+      },
+      // 2. Benar/Salah
+      {
+        type: "truefalse",
+        q: "Makan permen setiap hari baik untuk gigi dan tubuh kita.",
+        emoji: "🍬",
+        answer: false,
+      },
+      // 3. Pasangkan makanan dengan manfaatnya
+      {
+        type: "match",
+        q: "Pasangkan makanan dengan manfaatnya!",
+        pairs: [
+          { left: { emoji: "🥦", label: "Sayuran" },   right: { emoji: "💪", label: "Tubuh kuat" } },
+          { left: { emoji: "🍎", label: "Buah" },       right: { emoji: "🌟", label: "Kaya vitamin" } },
+          { left: { emoji: "🥛", label: "Susu" },       right: { emoji: "🦴", label: "Tulang kuat" } },
+          { left: { emoji: "🧼", label: "Cuci tangan" }, right: { emoji: "🦠", label: "Jauh dari kuman" } },
+        ],
+      },
+    ],
+    badge: { name: "Bintang Sehat", emoji: "🍏" },
+  },
+
+  // ── 5 GEMAR BELAJAR ─────────────────────────────────────────────────────────
+  {
+    id: 5,
+    title: "Gemar Belajar",
+    emoji: "📖",
+    image: "/Gemar Belajar.png",
+    video: "/Gemar belajar.mp4",
+    poster: "",
+    hero: "👦",
+    color: "#4c8df6",
+    soft: "#e3eeff",
+    story: "Gemar belajar membuat kita makin pintar dan bisa banyak hal baru!",
+    activity: {
+      prompt: "Susun kegiatan belajar Bima dari awal sampai selesai!",
+      items: [
+        { emoji: "🍟", label: "Kentang goreng" },
+        { emoji: "📚", label: "Buku", correct: true },
+        { emoji: "🛝", label: "Perosotan" },
+      ],
+      sequence: [
+        { emoji: "🎒", label: "Siapkan tas" },
+        { emoji: "🏫", label: "Pergi ke sekolah" },
+        { emoji: "📚", label: "Belajar" },
+        { emoji: "✏️", label: "Mengerjakan tugas" },
+      ],
+    },
+    quiz: [
+      // 1. Pilihan ganda
+      {
+        type: "choice",
+        q: "Saat Bu Guru sedang menjelaskan pelajaran, kita harus...",
+        options: [
+          { emoji: "🗣️", label: "Mengobrol dengan teman" },
+          { emoji: "👂", label: "Mendengarkan dengan seksama" },
+          { emoji: "😴", label: "Tidur-tiduran" },
+        ],
+        answer: 1,
+      },
+      // 2. Benar/Salah
+      {
+        type: "truefalse",
+        q: "Membaca buku bisa menambah pengetahuan dan membuat kita makin pintar.",
+        emoji: "📚",
+        answer: true,
+      },
+      // 3. Temukan yang benar
+      {
+        type: "find",
+        q: "Pilih semua sikap belajar yang baik!",
+        items: [
+          { emoji: "👂", label: "Mendengarkan guru", correct: true },
+          { emoji: "✏️", label: "Mencatat pelajaran", correct: true },
+          { emoji: "📖", label: "Membaca buku", correct: true },
+          { emoji: "🗣️", label: "Mengobrol saat belajar", correct: false },
+          { emoji: "🎈", label: "Bermain di kelas", correct: false },
+          { emoji: "😴", label: "Tidur di kelas", correct: false },
+        ],
+      },
+    ],
+    badge: { name: "Bintang Pintar", emoji: "🧠" },
+  },
+
+  // ── 6 BERMASYARAKAT ─────────────────────────────────────────────────────────
   {
     id: 6,
-    title: "Menjaga Kesehatan Diri",
-    emoji: "🛡️",
-    hero: "👧",
-    color: "#3fb8c9",
-    soft: "#dff5f8",
-    story: "Menjaga kesehatan diri berarti rajin menjaga badan tetap bersih dan sehat.",
+    title: "Bermasyarakat",
+    emoji: "👫",
+    image: "/Bermasyarakat.png",
+    video: "/Bermasyarakat.mp4",
+    poster: "",
+    hero: "👦",
+    color: "#9b8cf0",
+    soft: "#eeeaff",
+    story: "Bermasyarakat berarti berteman dengan baik, saling menyapa, dan saling menolong.",
     activity: {
-      prompt: "Susun kebiasaan menjaga kebersihan Sari!",
+      prompt: "Susun cara Bima berkenalan dengan teman baru!",
       items: [
-        { emoji: "🧸", label: "Boneka" },
-        { emoji: "🧼", label: "Sabun", correct: true },
-        { emoji: "🍬", label: "Permen" },
+        { emoji: "🙈", label: "Bersembunyi" },
+        { emoji: "😠", label: "Cemberut" },
+        { emoji: "👋", label: "Menyapa", correct: true },
       ],
       sequence: [
-        { emoji: "🧼", label: "Ambil sabun" },
-        { emoji: "🚿", label: "Mandi" },
-        { emoji: "🧴", label: "Keringkan badan" },
-        { emoji: "👚", label: "Pakai baju bersih" },
+        { emoji: "👀", label: "Melihat teman" },
+        { emoji: "👋", label: "Menyapa" },
+        { emoji: "😊", label: "Tersenyum" },
+        { emoji: "🤝", label: "Berkenalan" },
       ],
     },
     quiz: [
-      { q: "Saat batuk, kita menutup mulut dengan...", options: [{ emoji: "🙌", label: "Tangan kosong" }, { emoji: "🤧", label: "Tisu atau siku" }, { emoji: "🙅", label: "Dibiarkan" }], answer: 1 },
-      { q: "Kalau badan tidak enak, kita bilang pada...", options: [{ emoji: "🤐", label: "Tidak bilang siapa-siapa" }, { emoji: "👩", label: "Ibu, ayah, atau guru" }, { emoji: "🏃", label: "Teman di jalan" }], answer: 1 },
+      // 1. Benar/Salah
+      {
+        type: "truefalse",
+        q: "Kita boleh merebut mainan teman tanpa meminta izin terlebih dahulu.",
+        emoji: "🧸",
+        answer: false,
+      },
+      // 2. Pasangkan sikap bermasyarakat dengan artinya
+      {
+        type: "match",
+        q: "Pasangkan sikap dengan artinya yang tepat!",
+        pairs: [
+          { left: { emoji: "👋", label: "Menyapa" },       right: { emoji: "😊", label: "Ramah" } },
+          { left: { emoji: "🤝", label: "Jabat tangan" },  right: { emoji: "👫", label: "Berteman baik" } },
+          { left: { emoji: "🎁", label: "Berbagi" },        right: { emoji: "❤️", label: "Baik hati" } },
+          { left: { emoji: "🆘", label: "Menolong" },       right: { emoji: "🌟", label: "Pahlawan kecil" } },
+        ],
+      },
+      // 3. Temukan yang benar
+      {
+        type: "find",
+        q: "Pilih semua sikap baik dalam bermasyarakat!",
+        items: [
+          { emoji: "🤝", label: "Menolong teman", correct: true },
+          { emoji: "🎁", label: "Berbagi dengan teman", correct: true },
+          { emoji: "👋", label: "Menyapa dengan ramah", correct: true },
+          { emoji: "😂", label: "Menertawakan teman", correct: false },
+          { emoji: "😡", label: "Berteriak-teriak", correct: false },
+          { emoji: "🙅", label: "Tidak mau bermain bersama", correct: false },
+        ],
+      },
     ],
-    badge: { name: "Bintang Bersih", emoji: "🛡️" },
+    badge: { name: "Bintang Sahabat", emoji: "🤗" },
   },
+
+  // ── 7 TIDUR CEPAT ───────────────────────────────────────────────────────────
   {
     id: 7,
-    title: "Berpikir Kritis dan Kreatif",
-    emoji: "💡",
+    title: "Tidur Cepat",
+    emoji: "🌙",
+    image: "/Tidur Cepat.png",
+    video: "/Tidur Cepat.mp4",
+    poster: "",
     hero: "👦",
-    color: "#ff9a3d",
-    soft: "#ffeedb",
-    story: "Berpikir kritis dan kreatif membuat kita pandai mencari cara dan punya banyak ide!",
+    color: "#3f6bc9",
+    soft: "#dde8ff",
+    story: "Tidur cepat membuat tubuh dan pikiran kita kembali segar untuk hari esok!",
     activity: {
-      prompt: "Susun langkah mencari solusi saat mainan Bima rusak!",
+      prompt: "Susun kebiasaan tidur cepat Bima dari awal sampai selesai!",
       items: [
-        { emoji: "😭", label: "Menangis saja" },
-        { emoji: "🗑️", label: "Membuang" },
-        { emoji: "🤔", label: "Mencari cara", correct: true },
+        { emoji: "🎮", label: "Main game" },
+        { emoji: "🛏️", label: "Tidur", correct: true },
+        { emoji: "📱", label: "Main HP" },
       ],
       sequence: [
-        { emoji: "🔍", label: "Periksa kerusakan" },
-        { emoji: "💡", label: "Cari ide" },
-        { emoji: "🧰", label: "Perbaiki mainan" },
-        { emoji: "🎉", label: "Coba kembali" },
+        { emoji: "🧼", label: "Cuci muka" },
+        { emoji: "🪥", label: "Sikat gigi" },
+        { emoji: "🙏", label: "Berdoa" },
+        { emoji: "😴", label: "Tidur nyenyak" },
       ],
     },
     quiz: [
-      { q: "Kardus bekas bisa dijadikan...", options: [{ emoji: "🗑️", label: "Sampah saja" }, { emoji: "🚀", label: "Roket mainan" }, { emoji: "🙅", label: "Tidak bisa apa-apa" }], answer: 1 },
-      { q: "Jika belum tahu sesuatu, kita...", options: [{ emoji: "🙈", label: "Pura-pura tahu" }, { emoji: "😴", label: "Menyerah" }, { emoji: "❓", label: "Bertanya" }], answer: 2 },
+      // 1. Pasangkan kegiatan malam dengan manfaatnya
+      {
+        type: "match",
+        q: "Pasangkan kegiatan malam dengan manfaatnya!",
+        pairs: [
+          { left: { emoji: "🚿", label: "Mandi sore" },    right: { emoji: "💧", label: "Tubuh bersih" } },
+          { left: { emoji: "🪥", label: "Sikat gigi" },    right: { emoji: "😁", label: "Gigi sehat" } },
+          { left: { emoji: "🙏", label: "Berdoa" },         right: { emoji: "🌙", label: "Hati tenang" } },
+          { left: { emoji: "😴", label: "Tidur cepat" },   right: { emoji: "🌈", label: "Segar besok" } },
+        ],
+      },
+      // 2. Benar/Salah
+      {
+        type: "truefalse",
+        q: "Bermain HP sampai larut malam itu baik untuk kesehatan kita.",
+        emoji: "📱",
+        answer: false,
+      },
+      // 3. Pilihan ganda
+      {
+        type: "choice",
+        q: "Apa manfaat tidur cepat dan cukup setiap malam?",
+        options: [
+          { emoji: "😵", label: "Badan jadi lemas dan lesu" },
+          { emoji: "😴", label: "Jadi sulit bangun pagi" },
+          { emoji: "✨", label: "Badan segar dan otak siap belajar" },
+        ],
+        answer: 2,
+      },
     ],
-    badge: { name: "Bintang Kreatif", emoji: "🎨" },
+    badge: { name: "Bintang Istirahat", emoji: "🌙" },
   },
 ];
 

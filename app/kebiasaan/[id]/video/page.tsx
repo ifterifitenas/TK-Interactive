@@ -11,7 +11,7 @@ export default function VideoPage() {
   const [videoWatched, setVideoWatched] = useState(false);
   if (!habit) notFound();
 
-  const hasVideo = habit.id === 1;
+  const hasVideo = !!habit.video;
 
   return (
     <>
@@ -40,8 +40,8 @@ export default function VideoPage() {
                 controls
                 playsInline
                 preload="metadata"
-                poster="/bangun-pagi-poster.jpg"
-                src="/bangun-pagi-web.mp4"
+                {...(habit.poster ? { poster: habit.poster } : {})}
+                src={habit.video}
                 onError={() => setVideoError(true)}
                 onEnded={() => setVideoWatched(true)}
               >
@@ -51,11 +51,11 @@ export default function VideoPage() {
           ) : (
             <div className="video-unavailable">
               <span aria-hidden>🎬</span>
-              <strong>{hasVideo ? "Video tidak dapat dimuat" : "Video sedang disiapkan"}</strong>
-              <p>{hasVideo ? "Periksa kembali file video lalu coba lagi." : "Video untuk kebiasaan ini akan segera hadir."}</p>
+              <strong>{videoError ? "Video tidak dapat dimuat" : "Video sedang disiapkan"}</strong>
+              <p>{videoError ? "Periksa kembali file video lalu coba lagi." : "Video untuk kebiasaan ini akan segera hadir."}</p>
             </div>
           )}
-          {videoWatched && (
+          {(videoWatched || !hasVideo) && (
             <Link className="video-menu-button" href={`/kebiasaan/${habit.id}/aktivitas`}>
               MAIN <span aria-hidden>▶</span>
             </Link>

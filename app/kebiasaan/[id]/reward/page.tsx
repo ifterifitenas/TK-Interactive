@@ -49,7 +49,7 @@ function Reward({ id }: { id: number }) {
         {isLast ? (
           <Link className="btn btn-yellow big" href="/koleksi" aria-label="Lihat koleksi bintang">⭐</Link>
         ) : (
-          <Link className="btn btn-navy big" href={`/kebiasaan/${id + 1}`} aria-label="Kebiasaan berikutnya">▶</Link>
+          <Link className="btn btn-navy big" href={`/kebiasaan/${id + 1}/video`} aria-label="Kebiasaan berikutnya">▶</Link>
         )}
         <Link className="btn btn-soft big" href="/menu" aria-label="Kembali ke menu">🏠</Link>
       </div>

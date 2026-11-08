@@ -134,7 +134,7 @@ export default function IslandCarousel() {
                 aria-label={`Pulau ${h.id}: ${h.title}${locked ? ", terkunci" : isDone ? ", selesai" : ""}`}
               >
                 <span className="isle-num">{h.id}</span>
-                <Island id={h.id} done={isDone} locked={locked} />
+                <Island id={h.id} image={h.image} done={isDone} locked={locked} />
                 <span className="isle-title">{h.title}</span>
               </button>
             );
