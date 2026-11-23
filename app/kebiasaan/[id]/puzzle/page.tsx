@@ -15,6 +15,7 @@ export default function PuzzlePage() {
       title={h.title}
       color={h.color}
       soft={h.soft}
+      badge={h.badge}
     />
   );
 }

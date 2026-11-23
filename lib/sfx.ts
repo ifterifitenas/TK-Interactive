@@ -43,8 +43,62 @@ export const sfx = {
   fanfare: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.08, 0.22, "triangle", 0.14)),
   completion: () => {
     if (isMuted() || typeof window === "undefined") return;
-    const audio = new Audio("/completion.mp3");
-    audio.volume = 0.8;
-    void audio.play().catch(() => {});
+    // Hanya mainkan sekali — pastikan tidak loop
+    const a = new Audio("/completion.mp3");
+    a.loop = false;
+    a.volume = 0.8;
+    void a.play().catch(() => {});
+  },
+  // ── Tepuk tangan — noise burst dengan bandpass filter, total ~0.6 detik ──────
+  clap: () => {
+    if (isMuted()) return;
+    const c = audio();
+    if (!c) return;
+
+    // 4 tepukan dengan jeda makin cepat (seperti tepuk antusias)
+    const times = [0, 0.17, 0.32, 0.45];
+    times.forEach((offset) => {
+      const t = c.currentTime + offset;
+
+      // Noise buffer 110ms — materi mentah tepukan
+      const bufLen = Math.floor(c.sampleRate * 0.11);
+      const buf = c.createBuffer(1, bufLen, c.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let j = 0; j < bufLen; j++) {
+        // amplop: naik cepat lalu turun exponensial
+        const env = Math.exp(-j / (bufLen * 0.25));
+        d[j] = (Math.random() * 2 - 1) * env;
+      }
+
+      // Bandpass filter: fokus ke rentang tepuk tangan nyata (1–3 kHz)
+      const bpf = c.createBiquadFilter();
+      bpf.type = "bandpass";
+      bpf.frequency.value = 2000;
+      bpf.Q.value = 0.7;
+
+      // Highshelf tambahan biar ada "sparkle"
+      const shelf = c.createBiquadFilter();
+      shelf.type = "highshelf";
+      shelf.frequency.value = 3000;
+      shelf.gain.value = 6;
+
+      const gain = c.createGain();
+      gain.gain.setValueAtTime(0.9, t);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+
+      const src = c.createBufferSource();
+      src.buffer = buf;
+      src.connect(bpf);
+      bpf.connect(shelf);
+      shelf.connect(gain);
+      gain.connect(c.destination);
+      src.start(t);
+      src.stop(t + 0.13);
+    });
+
+    // Jingle kemenangan pendek setelah tepukan selesai (~0.6s)
+    [659, 784, 1047, 1319].forEach((f, idx) =>
+      tone(f, 0.58 + idx * 0.09, 0.22, "triangle", 0.18)
+    );
   },
 };

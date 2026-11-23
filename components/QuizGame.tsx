@@ -40,7 +40,7 @@ function GameChoice({
     if (picked === q.answer || wrong.includes(k)) return;
     if (k === q.answer) {
       setPicked(k);
-      sfx.correct();
+      sfx.clap();              // tepuk tangan saat menang
       speak("Benar! Hebat!");
       timer.current = setTimeout(() => onDone(true), 1800);
     } else {
@@ -94,7 +94,7 @@ function GameTrueFalse({
     if (answered !== null) return;
     setAnswered(val);
     if (val === q.answer) {
-      sfx.correct();
+      sfx.clap();              // tepuk tangan saat menang
       speak("Benar! Hebat!");
       timer.current = setTimeout(() => onDone(true), 1800);
     } else {
@@ -174,14 +174,18 @@ function GameMatch({
     if (leftSel === null) return;
     const pairIdx = rightItems[ridx].pairIdx;
     if (pairIdx === leftSel) {
-      sfx.correct();
       const newMatched = [...matched, leftSel];
       setMatched(newMatched);
       setLeftSel(null);
       if (newMatched.length === q.pairs.length) {
+        // Game selesai — tepuk tangan
+        sfx.clap();
         setDoneAnim(true);
         speak("Hebat! Semua pasangan benar!");
         timer.current = setTimeout(() => onDone(true), 1600);
+      } else {
+        // Pasangan benar satu — nada benar biasa
+        sfx.correct();
       }
     } else {
       sfx.wrong();
@@ -299,11 +303,15 @@ function GameFind({
     if (item.correct) {
       const newFound = [...found, item.origIdx];
       setFound(newFound);
-      sfx.correct();
       if (newFound.length === totalCorrect) {
+        // Game selesai — tepuk tangan
         setFinished(true);
+        sfx.clap();
         speak("Hebat! Semua ditemukan!");
         timer.current = setTimeout(() => onDone(true), 1800);
+      } else {
+        // Satu item benar — nada benar biasa
+        sfx.correct();
       }
     } else {
       setWrong((w) => [...w, item.origIdx]);
@@ -343,6 +351,78 @@ function GameFind({
   );
 }
 
+// ── Konfeti & Pop-up menang ──────────────────────────────────────────────────
+const CONFETTI_COLORS = ["#ffc83d","#f26d6d","#5cc26a","#4c8df6","#9b8cf0","#ff9f43"];
+
+function WinPopup({
+  color,
+  hero,
+  badge,
+  onNext,
+  onHome,
+}: {
+  color: string;
+  hero: string;
+  badge: { name: string; emoji: string };
+  onNext: () => void;
+  onHome: () => void;
+}) {
+  return (
+    <div className="win-overlay" role="dialog" aria-modal aria-label="Quiz selesai!">
+      {/* Konfeti */}
+      <div className="win-confetti" aria-hidden>
+        {Array.from({ length: 32 }).map((_, i) => {
+          const c = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+          return (
+            <i
+              key={i}
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: `${(i * 37 + 11) % 100}%`,
+                top: `-${8 + (i % 5) * 3}px`,
+                width: 8 + (i % 5) * 3,
+                height: (8 + (i % 5) * 3) * 0.6,
+                background: c,
+                borderRadius: i % 3 === 0 ? "50%" : 2,
+                animationDelay: `${(i * 0.17) % 2}s`,
+              }}
+              className="win-confetti-piece"
+            />
+          );
+        })}
+      </div>
+
+      <div className="win-card">
+        <div className="win-emoji-big" aria-hidden>{hero}</div>
+        <div className="win-stars" aria-hidden>⭐⭐⭐</div>
+
+        {/* Badge habit */}
+        <div
+          className="win-badge-box"
+          style={{ "--tile": color, borderColor: `${color}55` } as React.CSSProperties}
+        >
+          <span className="win-badge-emoji" aria-hidden>{badge.emoji}</span>
+          <strong className="win-badge-name">{badge.name}</strong>
+        </div>
+
+        <h2 className="win-title">Kamu Hebat! 🎉</h2>
+        <p className="win-desc">Semua soal quiz berhasil dijawab dengan benar!</p>
+
+        {/* Dua tombol */}
+        <div className="win-buttons">
+          <button className="win-btn-secondary" onClick={onHome} aria-label="Kembali ke menu">
+            🏠 Menu
+          </button>
+          <button className="win-btn" style={{ background: color }} onClick={onNext}>
+            Lanjut ke Puzzle ▶
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── labels per type ───────────────────────────────────────────────────────────
 const TYPE_LABELS: Record<string, { icon: string; name: string }> = {
   choice:    { icon: "🎯", name: "Pilihan Ganda" },
@@ -365,6 +445,7 @@ export default function QuizGame({
   const [i, setI] = useState(0);
   const [reaction, setReaction] = useState<{ mood: Mood; n: number }>({ mood: "idle", n: 0 });
   const [wrongCount, setWrongCount] = useState(0);
+  const [showWin, setShowWin] = useState(false);
 
   const q = h.quiz[i];
   const last = i === h.quiz.length - 1;
@@ -375,12 +456,10 @@ export default function QuizGame({
       setReaction((r) => ({ mood: "happy", n: r.n + 1 }));
       setTimeout(() => {
         if (last) {
-          sfx.completion();
-          if (onComplete) {
-            onComplete();
-          } else {
-            router.push(`/kebiasaan/${h.id}/puzzle`);
-          }
+          // Tampilkan pop-up menang, bukan langsung pindah halaman
+          sfx.clap();
+          speak("Kamu hebat! Semua soal berhasil!");
+          setShowWin(true);
         } else {
           setI((x) => x + 1);
           setWrongCount(0);
@@ -391,6 +470,14 @@ export default function QuizGame({
       setWrongCount((c) => c + 1);
       setReaction((r) => ({ mood: "sad", n: r.n + 1 }));
       setTimeout(() => setReaction((r) => ({ mood: "idle", n: r.n + 1 })), 900);
+    }
+  };
+
+  const handleNext = () => {
+    if (onComplete) {
+      onComplete();
+    } else {
+      router.push(`/kebiasaan/${h.id}/puzzle`);
     }
   };
 
@@ -453,6 +540,17 @@ export default function QuizGame({
           <p className="quiz-feedback quiz-feedback-wrong">❌ Coba lagi ya, kamu pasti bisa!</p>
         )}
       </section>
+
+      {/* Pop-up menang */}
+      {showWin && (
+        <WinPopup
+          color={h.color}
+          hero={h.hero}
+          badge={h.badge}
+          onNext={handleNext}
+          onHome={() => router.push("/menu")}
+        />
+      )}
     </div>
   );
 }

@@ -29,7 +29,84 @@ function initPuzzle(): PuzzleState {
   return { board, sidebar: shuffle([...removed]) };
 }
 
-// ── Komponen kepingan gambar
+// ── Konfeti ───────────────────────────────────────────────────────────────────
+const CONFETTI_COLORS = ["#ffc83d","#f26d6d","#5cc26a","#4c8df6","#9b8cf0","#ff9f43","#fff"];
+function ConfettiPiece({ i }: { i: number }) {
+  const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+  const left  = `${(i * 37 + 11) % 100}%`;
+  const delay = `${(i * 0.17) % 2}s`;
+  const size  = 8 + (i % 5) * 3;
+  return (
+    <i
+      aria-hidden
+      style={{
+        position: "absolute",
+        left,
+        top: `-${size}px`,
+        width: size,
+        height: size * 0.6,
+        background: color,
+        borderRadius: i % 3 === 0 ? "50%" : 2,
+        animationDelay: delay,
+      }}
+      className="win-confetti-piece"
+    />
+  );
+}
+
+// ── Pop-up menang (gaya reward page) ─────────────────────────────────────────
+function WinPopup({
+  image,
+  color,
+  badge,
+  onNext,
+  onHome,
+}: {
+  image: string;
+  color: string;
+  badge: { name: string; emoji: string };
+  onNext: () => void;
+  onHome: () => void;
+}) {
+  return (
+    <div className="win-overlay" role="dialog" aria-modal aria-label="Puzzle selesai!">
+      {/* Konfeti */}
+      <div className="win-confetti" aria-hidden>
+        {Array.from({ length: 32 }).map((_, i) => <ConfettiPiece key={i} i={i} />)}
+      </div>
+
+      <div className="win-card">
+        {/* Gambar puzzle utuh + bintang */}
+        <div className="win-img-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt="puzzle selesai" className="win-img" />
+          <span className="win-img-stars" aria-hidden>⭐⭐⭐</span>
+        </div>
+
+        {/* Badge habit (seperti reward page) */}
+        <div className="win-badge-box" style={{ "--tile": color, borderColor: `${color}55` } as React.CSSProperties}>
+          <span className="win-badge-emoji" aria-hidden>{badge.emoji}</span>
+          <strong className="win-badge-name">{badge.name}</strong>
+        </div>
+
+        <h2 className="win-title">Luar Biasa! 🎉</h2>
+        <p className="win-desc">Kamu berhasil menyusun puzzle dengan sempurna!</p>
+
+        {/* Dua tombol: Lanjut & Kembali */}
+        <div className="win-buttons">
+          <button className="win-btn-secondary" onClick={onHome} aria-label="Kembali ke menu">
+            🏠 Menu
+          </button>
+          <button className="win-btn" style={{ background: color }} onClick={onNext}>
+            Lanjut ▶
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Komponen kepingan gambar ──────────────────────────────────────────────────
 function PieceImg({
   idx,
   image,
@@ -76,13 +153,14 @@ function PieceImg({
   );
 }
 
-// ── Komponen utama puzzle
+// ── Komponen utama puzzle ─────────────────────────────────────────────────────
 export default function PuzzleGame({
   habitId,
   image,
   title,
   color,
   soft,
+  badge,
   onComplete,
   hideTopBar = false,
 }: {
@@ -91,22 +169,31 @@ export default function PuzzleGame({
   title: string;
   color: string;
   soft: string;
+  badge: { name: string; emoji: string };
   onComplete?: () => void;
   hideTopBar?: boolean;
 }) {
   const router = useRouter();
   const [puzzle, setPuzzle] = useState<PuzzleState>(initPuzzle);
-  const [sel, setSel] = useState<number | null>(null);   // keping dipilih dari sidebar
-  const [pop, setPop] = useState<number | null>(null);   // animasi pas dipasang
-  const [done, setDone] = useState(false);
+  const [sel, setSel] = useState<number | null>(null);
+  const [pop, setPop] = useState<number | null>(null);
+  const [showWin, setShowWin] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const dragRef = useRef<number | null>(null);
 
-  const SIZE = 108; // ukuran tiap slot di papan (px)
+  const SIZE = 108;
   const placed = MISSING - puzzle.sidebar.length;
 
+  const handleNext = () => {
+    if (onComplete) {
+      onComplete();
+    } else {
+      router.push(`/kebiasaan/${habitId}/reward`);
+    }
+  };
+
   const placePiece = (pieceIdx: number, slotIdx: number) => {
-    if (done || puzzle.board[slotIdx] !== null) return;
+    if (showWin || puzzle.board[slotIdx] !== null) return;
 
     if (pieceIdx === slotIdx) {
       sfx.correct();
@@ -120,14 +207,12 @@ export default function PuzzleGame({
       setPuzzle({ board: nb, sidebar: ns });
 
       if (ns.length === 0) {
-        setDone(true);
-        sfx.completion();
-        speak("Hore! Puzzle selesai! Kamu hebat sekali!");
-        if (onComplete) {
-          setTimeout(onComplete, 2400);
-        } else {
-          setTimeout(() => router.push(`/kebiasaan/${habitId}/reward`), 3200);
-        }
+        // Tampilkan pop-up menang setelah animasi selesai
+        setTimeout(() => {
+          sfx.clap();
+          speak("Hore! Puzzle selesai! Kamu hebat sekali!");
+          setShowWin(true);
+        }, 600);
       }
     } else {
       sfx.wrong();
@@ -169,9 +254,7 @@ export default function PuzzleGame({
 
         {/* ── Instruksi dinamis ── */}
         <p className="puzzle-instruction">
-          {done
-            ? "🎉 Selamat! Puzzle berhasil disusun!"
-            : sel !== null
+          {sel !== null
             ? "👆 Ketuk kotak kosong yang sesuai!"
             : "👇 Pilih kepingan di samping, lalu ketuk kotak yang kosong!"}
         </p>
@@ -222,10 +305,7 @@ export default function PuzzleGame({
                         ) : (
                           <div className="puzzle-empty-slot">
                             {isDroppable && (
-                              <span
-                                className="puzzle-drop-hint"
-                                style={{ color }}
-                              >
+                              <span className="puzzle-drop-hint" style={{ color }}>
                                 +
                               </span>
                             )}
@@ -246,15 +326,10 @@ export default function PuzzleGame({
               {puzzle.sidebar.map((pieceIdx) => (
                 <div
                   key={pieceIdx}
-                  className={`puzzle-piece-card ${
-                    sel === pieceIdx ? "selected" : ""
-                  }`}
+                  className={`puzzle-piece-card ${sel === pieceIdx ? "selected" : ""}`}
                   style={
                     sel === pieceIdx
-                      ? {
-                          borderColor: color,
-                          boxShadow: `0 0 0 3px ${color}55`,
-                        }
+                      ? { borderColor: color, boxShadow: `0 0 0 3px ${color}55` }
                       : {}
                   }
                   onClick={() => {
@@ -277,21 +352,24 @@ export default function PuzzleGame({
                 </div>
               ))}
 
-              {puzzle.sidebar.length === 0 && !done && (
+              {puzzle.sidebar.length === 0 && !showWin && (
                 <p className="puzzle-sidebar-empty">Semua sudah terpasang!</p>
               )}
             </div>
           </div>
         </div>
-
-        {/* Banner selesai */}
-        {done && (
-          <div className="puzzle-done-banner" style={{ background: color }}>
-            🎉 Luar biasa! Kamu berhasil menyusun puzzle!<br />
-            <small>Sebentar lagi lanjut materi baru...</small>
-          </div>
-        )}
       </section>
+
+      {/* ── Pop-up menang ── */}
+      {showWin && (
+        <WinPopup
+          image={image}
+          color={color}
+          badge={badge}
+          onNext={handleNext}
+          onHome={() => router.push("/menu")}
+        />
+      )}
     </div>
   );
 }

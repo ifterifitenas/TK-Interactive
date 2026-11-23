@@ -3708,3 +3708,499 @@ body:has(.activity-page) {
   margin: 0;
 }
 
+
+/* ══════════════════════════════════════════════════════════
+   WIN POPUP — Pop-up Menang (Quiz & Puzzle)
+   ══════════════════════════════════════════════════════════ */
+
+/* Overlay gelap penuh layar */
+.win-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 20, 50, 0.72);
+  backdrop-filter: blur(4px);
+  animation: win-overlay-in 0.3s ease both;
+}
+@keyframes win-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Konfeti container */
+.win-confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1000;
+}
+.win-confetti-piece {
+  display: block;
+  position: absolute;
+  animation: win-fall 2.4s ease-in forwards;
+  border-radius: 2px;
+}
+@keyframes win-fall {
+  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity: 0.3; }
+}
+
+/* Kartu utama pop-up */
+.win-card {
+  position: relative;
+  z-index: 1001;
+  background: #fff;
+  border-radius: 32px;
+  padding: 36px 32px 28px;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35), 0 0 0 4px rgba(255,200,61,0.5);
+  animation: win-card-in 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+@keyframes win-card-in {
+  from { opacity: 0; transform: scale(0.6) translateY(40px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Gambar puzzle utuh (hanya di PuzzleWin) */
+.win-img-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 4px solid #ffc83d;
+  box-shadow: 0 4px 16px #ffc83d55;
+}
+.win-img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  max-height: 180px;
+}
+.win-img-stars {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  filter: drop-shadow(0 1px 4px #0005);
+  animation: win-stars-pop 0.6s 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+@keyframes win-stars-pop {
+  from { opacity: 0; transform: translateX(-50%) scale(0.5); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+
+/* Emoji besar (hanya di QuizWin) */
+.win-emoji-big {
+  font-size: 5rem;
+  line-height: 1;
+  animation: win-bounce 0.7s 0.2s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+@keyframes win-bounce {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Emoji 🎉 atas kartu */
+.win-emoji {
+  font-size: 3rem;
+  animation: win-bounce 0.5s 0.1s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+/* Bintang */
+.win-stars {
+  font-size: 2rem;
+  letter-spacing: 4px;
+  text-align: center;
+  width: 100%;
+  display: block;
+  animation: win-stars-center-pop 0.6s 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+@keyframes win-stars-center-pop {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Judul */
+.win-title {
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  color: #1f3a5f;
+  font-weight: 900;
+  margin: 0;
+  animation: win-text-in 0.4s 0.3s ease both;
+}
+
+/* Deskripsi */
+.win-desc {
+  font-size: 1rem;
+  color: #3a5070;
+  line-height: 1.5;
+  animation: win-text-in 0.4s 0.45s ease both;
+}
+
+@keyframes win-text-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Tombol lanjut */
+.win-btn {
+  margin-top: 4px;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 40px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-family: var(--font-display), system-ui;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #0003;
+  transition: transform 0.12s, box-shadow 0.12s;
+  animation: win-text-in 0.4s 0.6s ease both;
+}
+.win-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #0003; }
+.win-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0003; }
+
+
+/* ===== Roulette Page ========================================================= */
+.roulette-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.roulette-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0 32px;
+}
+.roulette-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border: 3px solid var(--line);
+  border-radius: 24px;
+  padding: 16px 24px;
+  width: 100%;
+  max-width: 480px;
+}
+.roulette-header-char {
+  font-size: 3.5rem;
+  line-height: 1;
+  animation: bob 2.6s ease-in-out infinite;
+}
+.roulette-title {
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.roulette-subtitle {
+  font-size: 0.9rem;
+  color: #6a85a0;
+  margin: 0;
+}
+
+/* ── Slot machine wheel ── */
+.roulette-wheel {
+  position: relative;
+  width: min(90vw, 320px);
+}
+.roulette-slot-window {
+  overflow: hidden;
+  height: 88px;
+  border: 4px solid var(--navy);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #dff1ff, #f4faff);
+  box-shadow: 0 8px 0 var(--navy), inset 0 2px 8px rgba(31,58,95,0.12);
+  position: relative;
+}
+.roulette-items {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.roulette-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 24px;
+  height: 88px;
+  font-weight: 800;
+  color: var(--navy);
+  font-family: var(--font-display), system-ui;
+  font-size: clamp(1.1rem, 3vw, 1.4rem);
+  transition: background 0.2s;
+}
+.roulette-item.selected {
+  background: rgba(255, 200, 61, 0.25);
+}
+.roulette-item-emoji {
+  font-size: 2rem;
+  line-height: 1;
+  flex: none;
+}
+.roulette-selector {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+  padding: 0 4px;
+}
+.roulette-selector-arrow {
+  color: var(--navy);
+  font-size: 1.2rem;
+  opacity: 0.6;
+}
+
+/* ── Result display ── */
+.roulette-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 3px solid var(--yellow);
+  border-radius: 20px;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+  color: var(--navy);
+  animation: pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+  box-shadow: 0 4px 0 var(--yellow-d);
+}
+.roulette-result-emoji {
+  font-size: 2rem;
+}
+
+/* ── Buttons ── */
+.roulette-actions {
+  display: flex;
+  justify-content: center;
+}
+.roulette-spin-btn {
+  min-width: 200px;
+  min-height: 60px;
+  font-family: var(--font-display), system-ui;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--navy);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 36px;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #14263f;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.roulette-spin-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 0 #14263f; }
+.roulette-spin-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 #14263f; }
+.roulette-spin-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.roulette-start-btn {
+  background: #2ecc71;
+  box-shadow: 0 6px 0 #1a9e53;
+  animation: pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.roulette-start-btn:hover { box-shadow: 0 8px 0 #1a9e53; }
+
+/* ── Legend ── */
+.roulette-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-width: 400px;
+}
+.roulette-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--navy);
+  transition: border-color 0.2s, background 0.2s;
+}
+.roulette-legend-item.active {
+  border-color: var(--yellow);
+  background: #fff8e3;
+  font-weight: 800;
+}
+
+/* ===== Game Universal Page =================================================== */
+.game-universal-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.game-loading {
+  text-align: center;
+  padding: 48px;
+  font-size: 1.3rem;
+  color: var(--navy);
+}
+
+/* ===== Final Reward Popup ==================================================== */
+.final-reward-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(10, 20, 40, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+}
+.final-reward-card {
+  position: relative;
+  background: #fff;
+  border: 4px solid var(--tile, var(--navy));
+  border-radius: 32px;
+  padding: 32px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  animation: pop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.final-reward-hero {
+  font-size: 5rem;
+  line-height: 1;
+  animation: jump 0.8s ease-in-out 2;
+}
+.final-reward-title {
+  font-size: clamp(1.8rem, 6vw, 2.4rem);
+  color: var(--navy);
+  margin: 0;
+}
+.final-reward-desc {
+  font-size: 1.05rem;
+  color: var(--ink);
+  line-height: 1.5;
+  margin: 0;
+}
+.final-reward-badge {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border: 3px solid var(--tile, var(--navy));
+  border-radius: 20px;
+  text-align: left;
+  width: 100%;
+}
+.final-reward-badge-emoji {
+  font-size: 3rem;
+  line-height: 1;
+  animation: pop 0.6s 0.2s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.final-reward-badge-got {
+  font-size: 0.75rem;
+  color: #6a85a0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.final-reward-badge-name {
+  font-family: var(--font-display), system-ui;
+  font-size: 1.15rem;
+  color: var(--navy);
+}
+.final-reward-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+.final-reward-btn {
+  flex: 1;
+  min-width: 140px;
+  min-height: 52px;
+  font-family: var(--font-display), system-ui;
+  font-size: 1rem;
+  font-weight: 800;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.final-reward-btn:active { transform: translateY(3px); }
+.final-reward-btn.home-btn {
+  background: #fff;
+  color: var(--navy);
+  border: 3px solid var(--line);
+  box-shadow: 0 4px 0 var(--line);
+}
+.final-reward-btn.next-btn {
+  color: #fff;
+  box-shadow: 0 4px 0 #0004;
+}
+.final-reward-btn:hover { transform: translateY(-2px); }
+
+/* ── Win popup: badge box & 2 tombol ───────────────────────────────────────── */
+.win-badge-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff9e6;
+  border: 2.5px solid;
+  border-radius: 18px;
+  padding: 10px 22px;
+  margin: 2px 0 6px;
+  animation: win-text-in 0.4s 0.4s ease both;
+}
+.win-badge-emoji {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+.win-badge-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1f3a5f;
+}
+
+/* Win popup: dua tombol sejajar */
+.win-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  animation: win-text-in 0.4s 0.65s ease both;
+}
+.win-btn-secondary {
+  background: #f2f8ff;
+  border: 2.5px solid #d3e3f5;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f3a5f;
+  cursor: pointer;
+  font-family: var(--font-display, system-ui);
+  transition: transform 0.12s;
+}
+.win-btn-secondary:hover { transform: translateY(-2px); }
+.win-btn-secondary:active { transform: translateY(2px); }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { notFound, useRouter } from "next/navigation";
 import TopBar from "@/components/TopBar";
 import PuzzleGame from "@/components/PuzzleGame";
@@ -8,8 +8,9 @@ import QuizGame from "@/components/QuizGame";
 import { TOTAL } from "@/lib/data";
 import { useProgress } from "@/lib/progress";
 import { useHabit } from "@/lib/useHabit";
+import { sfx } from "@/lib/sfx";
 
-// Game Utama (Game 1 yang dimainkan pertama)
+// Game Utama
 import AlarmGame from "./games/AlarmGame";
 import MazeGame from "./games/MazeGame";
 import BallCatchGame from "./games/BallCatchGame";
@@ -18,7 +19,7 @@ import WordGame from "./games/WordGame";
 import SimonGame from "./games/SimonGame";
 import SleepGame from "./games/SleepGame";
 
-// Game Tambahan Mini yang bisa diundi oleh Roulette
+// Game Tambahan
 import MorningRoutineGame from "./games/MorningRoutineGame";
 import WorshipGame from "./games/WorshipGame";
 import RunnerGame from "./games/RunnerGame";
@@ -30,8 +31,91 @@ import StarCountGame from "./games/StarCountGame";
 import GameRoulette from "./GameRoulette";
 import type { RouletteOption } from "./rouletteConfig";
 
+// ── Konfeti ───────────────────────────────────────────────────────────────────
+const CONFETTI_COLORS = ["#ffc83d","#f26d6d","#5cc26a","#4c8df6","#9b8cf0","#ff9f43","#fff"];
+
+function ConfettiPiece({ i }: { i: number }) {
+  const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+  return (
+    <i
+      aria-hidden
+      style={{
+        position: "absolute",
+        left: `${(i * 37 + 11) % 100}%`,
+        top: `-${8 + (i % 5) * 3}px`,
+        width: 8 + (i % 5) * 3,
+        height: (8 + (i % 5) * 3) * 0.6,
+        background: color,
+        borderRadius: i % 3 === 0 ? "50%" : 2,
+        animationDelay: `${(i * 0.17) % 2}s`,
+      }}
+      className="win-confetti-piece"
+    />
+  );
+}
+
+// ── Popup Reward ──────────────────────────────────────────────────────────────
+function GameWinPopup({
+  badge,
+  color,
+  hero,
+  onNext,
+  onHome,
+}: {
+  badge: { name: string; emoji: string };
+  color: string;
+  hero: string;
+  onNext: () => void;
+  onHome: () => void;
+}) {
+  return (
+    <div className="win-overlay" role="dialog" aria-modal aria-label="Game selesai!">
+      <div className="win-confetti" aria-hidden>
+        {Array.from({ length: 32 }).map((_, i) => (
+          <ConfettiPiece key={i} i={i} />
+        ))}
+      </div>
+
+      <div className="win-card">
+        <div className="win-emoji-big" aria-hidden>{hero}</div>
+        <div className="win-stars" aria-hidden>⭐⭐⭐</div>
+
+        <div
+          className="win-badge-box"
+          style={{ "--tile": color, borderColor: `${color}55` } as React.CSSProperties}
+        >
+          <span className="win-badge-emoji" aria-hidden>{badge.emoji}</span>
+          <strong className="win-badge-name">{badge.name}</strong>
+        </div>
+
+        <h2 className="win-title">Luar Biasa! 🎉</h2>
+        <p className="win-desc">Kamu berhasil menyelesaikan semua tantangan!</p>
+
+        <div className="win-buttons">
+          <button
+            className="win-btn-secondary"
+            onClick={onHome}
+            aria-label="Kembali ke menu"
+          >
+            🏠 Menu
+          </button>
+          <button
+            className="win-btn"
+            style={{ background: color }}
+            onClick={onNext}
+          >
+            Lanjut ▶
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 type GameStage = "first_game" | "roulette" | "second_game";
 
+// ── Komponen Utama ────────────────────────────────────────────────────────────
 export default function GamePage() {
   const habit = useHabit();
   const router = useRouter();
@@ -39,6 +123,8 @@ export default function GamePage() {
 
   const [stage, setStage] = useState<GameStage>("first_game");
   const [selectedBonusGame, setSelectedBonusGame] = useState<RouletteOption | null>(null);
+  // Popup reward ditampilkan sebagai overlay di ATAS game (tanpa unmount game)
+  const [showWinPopup, setShowWinPopup] = useState(false);
 
   if (!habit) notFound();
 
@@ -47,8 +133,14 @@ export default function GamePage() {
     setStage("roulette");
   };
 
-  // Selesai Game Tambahan -> Langsung lanjut ke MATERI BARU
+  // Selesai Game Tambahan -> Tampilkan popup reward DI ATAS (tanpa unmount game)
   const handleSecondGameComplete = () => {
+    setShowWinPopup(true);
+    setTimeout(() => sfx.clap(), 100);
+  };
+
+  // Dari popup reward -> lanjut ke materi/habit berikutnya
+  const handleGoNext = () => {
     complete(habit.id);
     if (habit.id < TOTAL) {
       router.push(`/kebiasaan/${habit.id + 1}/video`);
@@ -63,7 +155,7 @@ export default function GamePage() {
     setStage("second_game");
   };
 
-  // Render Game Tambahan yang dipilih Roulette (Puzzle / Kuis / Mini Game)
+  // Render Game Tambahan
   const renderBonusGameByKey = (key: string, onComplete: () => void) => {
     switch (key) {
       case "puzzle":
@@ -74,6 +166,7 @@ export default function GamePage() {
             title={habit.title}
             color={habit.color}
             soft={habit.soft}
+            badge={habit.badge}
             onComplete={onComplete}
             hideTopBar
           />
@@ -102,6 +195,7 @@ export default function GamePage() {
             title={habit.title}
             color={habit.color}
             soft={habit.soft}
+            badge={habit.badge}
             onComplete={onComplete}
             hideTopBar
           />
@@ -184,7 +278,9 @@ export default function GamePage() {
           }`}
         >
           <span className="stage-icon">
-            {stage === "second_game" ? selectedBonusGame?.emoji || "⭐" : "🎲"}
+            {stage === "second_game"
+              ? selectedBonusGame?.emoji || "⭐"
+              : "🎲"}
           </span>
           <span className="stage-text">Game Tambahan</span>
         </div>
@@ -194,7 +290,7 @@ export default function GamePage() {
         {/* Tahap 1: Game Utama */}
         {stage === "first_game" && mainGame}
 
-        {/* Tahap 2: Roulette Pengundi Game Tambahan */}
+        {/* Tahap 2: Roulette */}
         {stage === "roulette" && (
           <GameRoulette
             habitId={habit.id}
@@ -204,7 +300,7 @@ export default function GamePage() {
           />
         )}
 
-        {/* Tahap 3: Game Tambahan yang Ditentukan oleh Roulette */}
+        {/* Tahap 3: Game Tambahan */}
         {stage === "second_game" && selectedBonusGame && (
           <div className="second-game-container">
             <div
@@ -226,6 +322,17 @@ export default function GamePage() {
           </div>
         )}
       </main>
+
+      {/* ── Popup Reward muncul sebagai overlay DI ATAS game ── */}
+      {showWinPopup && (
+        <GameWinPopup
+          badge={habit.badge}
+          color={habit.color}
+          hero={habit.hero}
+          onNext={handleGoNext}
+          onHome={() => router.push("/menu")}
+        />
+      )}
     </div>
   );
 }
