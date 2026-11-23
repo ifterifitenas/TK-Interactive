@@ -135,7 +135,7 @@ function Puzzle({
 
       if (ns.length === 0) {
         setDone(true);
-        sfx.cheer();
+        sfx.completion();
         speak("Hore! Puzzle selesai! Kamu hebat sekali!");
         setTimeout(() => router.push(`/kebiasaan/${habitId}/reward`), 3200);
       }

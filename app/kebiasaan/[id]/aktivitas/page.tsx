@@ -90,7 +90,7 @@ function Aktivitas({ habit: h }: { habit: Habit }) {
       <main className="activity-main">
         <section className="sequence-intro" aria-label="Instruksi aktivitas">
           <div className="sequence-intro-icon" aria-hidden>🧩</div>
-          <div><span className="sequence-kicker">AYO SUSUN!</span><p>{h.activity.prompt}</p></div>
+          <div><p>{h.activity.prompt}</p></div>
         </section>
 
         <section className="sequence-board" aria-label="Slot urutan aktivitas">

@@ -56,7 +56,7 @@ export default function VideoPage() {
             </div>
           )}
           {(videoWatched || !hasVideo) && (
-            <Link className="video-menu-button" href={`/kebiasaan/${habit.id}/aktivitas`}>
+            <Link className="video-menu-button" href={`/kebiasaan/${habit.id}/game`}>
               MAIN <span aria-hidden>▶</span>
             </Link>
           )}

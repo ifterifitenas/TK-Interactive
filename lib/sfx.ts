@@ -39,4 +39,10 @@ export const sfx = {
     tone(240, 0.16, 0.28, "sine", 0.12);
   },
   cheer: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, i * 0.11, 0.32, "triangle")),
+  completion: () => {
+    if (isMuted() || typeof window === "undefined") return;
+    const audio = new Audio("/completion.mp3");
+    audio.volume = 0.8;
+    void audio.play().catch(() => {});
+  },
 };

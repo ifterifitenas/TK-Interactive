@@ -379,6 +379,7 @@ function Kuis({ habit: h }: { habit: Habit }) {
       setReaction((r) => ({ mood: "happy", n: r.n + 1 }));
       setTimeout(() => {
         if (last) {
+          sfx.completion();
           router.push(`/kebiasaan/${h.id}/puzzle`);
         } else {
           setI((x) => x + 1);
@@ -395,7 +396,7 @@ function Kuis({ habit: h }: { habit: Habit }) {
 
   return (
     <div className="quiz-page">
-      <TopBar title={h.title} back={`/kebiasaan/${h.id}/aktivitas`} speakText={q.q} />
+      <TopBar title={h.title} back={`/kebiasaan/${h.id}/game`} speakText={q.q} />
 
       <section className="panel stack quiz-card">
 
