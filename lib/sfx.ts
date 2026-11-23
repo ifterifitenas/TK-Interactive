@@ -39,6 +39,8 @@ export const sfx = {
     tone(240, 0.16, 0.28, "sine", 0.12);
   },
   cheer: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, i * 0.11, 0.32, "triangle")),
+  spinTick: () => tone(850, 0, 0.03, "square", 0.06),
+  fanfare: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.08, 0.22, "triangle", 0.14)),
   completion: () => {
     if (isMuted() || typeof window === "undefined") return;
     const audio = new Audio("/completion.mp3");
