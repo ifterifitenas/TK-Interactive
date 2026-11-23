@@ -18,4 +18,5 @@ export function setMuted(v: boolean) {
   try {
     localStorage.setItem(KEY, v ? "1" : "0");
   } catch {}
+  window.dispatchEvent(new CustomEvent("7kaih-muted-change", { detail: v }));
 }

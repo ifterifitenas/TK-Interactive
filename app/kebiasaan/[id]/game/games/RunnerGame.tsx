@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { sfx } from '@/lib/sfx';
 
 interface RunnerGameProps {
   onComplete: () => void;
@@ -66,6 +67,8 @@ export default function RunnerGame({ onComplete }: RunnerGameProps) {
   const endGame = useCallback(() => {
     gameStateRef.current = 'done';
     setGameState('done');
+    if (livesRef.current <= 0) sfx.failure();
+    else sfx.completion();
     if (gameLoopRef.current) clearInterval(gameLoopRef.current);
     if (countdownRef.current) clearInterval(countdownRef.current);
     if (spawnTimerRef.current) clearTimeout(spawnTimerRef.current);

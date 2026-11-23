@@ -457,7 +457,7 @@ export default function QuizGame({
       setTimeout(() => {
         if (last) {
           // Tampilkan pop-up menang, bukan langsung pindah halaman
-          sfx.clap();
+          sfx.completion();
           speak("Kamu hebat! Semua soal berhasil!");
           setShowWin(true);
         } else {

@@ -209,7 +209,7 @@ export default function PuzzleGame({
       if (ns.length === 0) {
         // Tampilkan pop-up menang setelah animasi selesai
         setTimeout(() => {
-          sfx.clap();
+          sfx.completion();
           speak("Hore! Puzzle selesai! Kamu hebat sekali!");
           setShowWin(true);
         }, 600);

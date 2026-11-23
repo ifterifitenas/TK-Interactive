@@ -25,7 +25,6 @@ interface Star {
 
 const ALL_ITEMS: Omit<Item, 'id'>[] = [
   { emoji: '🪥', label: 'Sikat Gigi', isGood: true },
-  { emoji: '📿', label: 'Buku Doa', isGood: true },
   { emoji: '🛏️', label: 'Bantal', isGood: true },
   { emoji: '🧸', label: 'Boneka', isGood: true },
   { emoji: '💧', label: 'Air Minum', isGood: true },
@@ -46,8 +45,17 @@ function generateStars(count: number): Star[] {
   }));
 }
 
+function shuffleItems(items: Omit<Item, 'id'>[]): Omit<Item, 'id'>[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 export default function SleepGame({ onComplete }: SleepGameProps) {
-  const [items] = useState<Item[]>(() =>
+  const [items, setItems] = useState<Item[]>(() =>
     ALL_ITEMS.map((item, i) => ({ ...item, id: i }))
   );
   const [stars] = useState<Star[]>(() => generateStars(60));
@@ -62,6 +70,7 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const [feedback, setFeedback] = useState<{ text: string; color: string } | null>(null);
   const [animateItem, setAnimateItem] = useState(false);
+  const [dropFeedback, setDropFeedback] = useState<{ type: 'correct' | 'wrong'; side: 'left' | 'right' } | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -69,8 +78,14 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
   const currentItem = currentIndex < items.length ? items[currentIndex] : null;
 
   useEffect(() => {
-    if (isDone) sfx.completion();
-  }, [isDone]);
+    setItems(shuffleItems(ALL_ITEMS).map((item, i) => ({ ...item, id: i })));
+  }, []);
+
+  useEffect(() => {
+    if (!isDone) return;
+    if (lives <= 0) sfx.failure();
+    else sfx.completion();
+  }, [isDone, lives]);
 
   const showFeedback = useCallback((text: string, color: string) => {
     if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
@@ -88,13 +103,25 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
       if (isCorrect) {
         newScore += 10;
         showFeedback('+10 ✅ Benar!', '#4ade80');
+        sfx.correct();
+        setDropFeedback({ type: 'correct', side: droppedRight ? 'right' : 'left' });
       } else {
         newLives -= 1;
         showFeedback('-1 ❤️ Salah tempat!', '#f87171');
+        sfx.wrong();
+        setDropFeedback({ type: 'wrong', side: droppedRight ? 'right' : 'left' });
+        setAnimateItem(true);
+        setTimeout(() => setAnimateItem(false), 400);
+        setScore(score);
+        setLives(newLives);
+        if (newLives <= 0) setTimeout(() => setIsDone(true), 800);
+        setTimeout(() => setDropFeedback(null), 800);
+        return;
       }
 
       setScore(newScore);
       setLives(newLives);
+      setTimeout(() => setDropFeedback(null), 800);
 
       const nextIndex = currentIndex + 1;
       if (nextIndex >= items.length || newLives <= 0) {
@@ -155,6 +182,7 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
         handleResult(false);
       } else {
         // Snapped back — no action
+        sfx.wrong();
         setAnimateItem(true);
         setTimeout(() => setAnimateItem(false), 400);
       }
@@ -185,6 +213,7 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
 
   const resetGame = () => {
     if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
+    setItems(shuffleItems(ALL_ITEMS).map((item, i) => ({ ...item, id: i })));
     setCurrentIndex(0);
     setScore(0);
     setLives(3);
@@ -192,6 +221,7 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
     setDragging(false);
     setFeedback(null);
     setAnimateItem(false);
+    setDropFeedback(null);
   };
 
   return (
@@ -211,16 +241,6 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
           70% { transform: scale(1.05) rotate(3deg); }
           100% { transform: scale(1) rotate(0deg); }
         }
-        @keyframes room-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(63,107,201,0.4); }
-          50% { box-shadow: 0 0 0 10px rgba(63,107,201,0); }
-        }
-        @keyframes feedback-pop {
-          0% { opacity: 0; transform: translateY(10px) scale(0.8); }
-          30% { opacity: 1; transform: translateY(-8px) scale(1.1); }
-          80% { opacity: 1; transform: translateY(-12px) scale(1); }
-          100% { opacity: 0; transform: translateY(-20px) scale(0.9); }
-        }
         @keyframes moon-glow {
           0%, 100% { text-shadow: 0 0 10px #fffde7, 0 0 20px #fff9c4; }
           50% { text-shadow: 0 0 20px #fffde7, 0 0 40px #fff59d, 0 0 60px #fff176; }
@@ -232,8 +252,8 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
         .sleep-game-container {
           position: relative;
           width: 100%;
-          min-height: 680px;
-          background: radial-gradient(circle at 50% 12%, #263f86 0%, #111f4c 42%, #080f2b 100%);
+          min-height: 820px;
+          background: linear-gradient(90deg, #edf8eb 0 32%, #fff7da 32% 68%, #fde9ef 68% 100%);
           overflow: hidden;
           border-radius: 16px;
           display: flex;
@@ -266,11 +286,11 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
         .sleep-score {
           font-size: 1.25rem;
           font-weight: 700;
-          color: #93c5fd;
-          background: rgba(63,107,201,0.25);
+          color: #2f7d32;
+          background: rgba(255,255,255,.9);
           border-radius: 20px;
           padding: 7px 16px;
-          border: 2px solid rgba(147,197,253,.45);
+          border: 2px solid #4caf50;
         }
         .sleep-lives {
           display: flex;
@@ -279,18 +299,8 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
         }
         .sleep-progress {
           font-size: 1.05rem;
-          color: #94a3b8;
+          color: #64748b;
           font-weight: 600;
-        }
-        .sleep-moon {
-          position: absolute;
-          top: 10px;
-          left: 50%;
-          transform: translateX(-50%);
-          font-size: 3.2rem;
-          animation: moon-glow 3s infinite ease-in-out;
-          z-index: 5;
-          pointer-events: none;
         }
         .sleep-arena {
           position: relative;
@@ -302,16 +312,31 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
           justify-content: center;
           padding: 10px 0 20px;
         }
+        .sleep-zone-divider {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 0;
+          border-left: 4px dashed rgba(160,120,80,.65);
+          z-index: 12;
+          pointer-events: none;
+        }
+        .sleep-zone-divider-left {
+          left: 32%;
+        }
+        .sleep-zone-divider-right {
+          left: 68%;
+        }
         .sleep-zone-left {
           position: absolute;
           left: 0;
           top: 0;
           bottom: 0;
-          width: 30%;
-          margin: 20px 0;
-          border: 2px dashed rgba(148,163,184,.35);
+          width: 32%;
+          margin: 0;
+          border: 0;
           border-radius: 22px;
-          background: rgba(15,23,42,.28);
+          background: transparent;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -319,9 +344,17 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
           gap: 8px;
           pointer-events: none;
         }
+        .sleep-zone-left.drop-correct {
+          background: rgba(74,222,128,.50);
+          box-shadow: inset 0 0 100px rgba(74,222,128,.35);
+        }
+        .sleep-zone-left.drop-wrong {
+          background: rgba(248,113,113,.50);
+          box-shadow: inset 0 0 100px rgba(248,113,113,.35);
+        }
         .sleep-zone-left-label {
           font-size: 0.8rem;
-          color: #94a3b8;
+          color: #2f7d32;
           text-align: center;
           font-weight: 600;
           text-transform: uppercase;
@@ -333,28 +366,37 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
         }
         .sleep-room {
           position: absolute;
-          right: 20px;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 150px;
-          min-height: 170px;
-          background: linear-gradient(145deg, #294caa, #172d78);
-          border: 4px solid #60a5fa;
+          right: 0;
+          top: 0;
+          bottom: 0;
+          width: 32%;
+          min-height: 0;
+          background: transparent;
+          border: 0;
           border-radius: 22px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 4px;
-          animation: room-pulse 2.5s infinite;
           pointer-events: none;
+        }
+        .sleep-room.drop-correct {
+          background: rgba(74,222,128,.50);
+          box-shadow: inset 0 0 100px rgba(74,222,128,.35);
+          border-radius: 0;
+        }
+        .sleep-room.drop-wrong {
+          background: rgba(248,113,113,.50);
+          box-shadow: inset 0 0 100px rgba(248,113,113,.35);
+          border-radius: 0;
         }
         .sleep-room-emoji {
           font-size: 3.5rem;
         }
         .sleep-room-label {
           font-size: 0.72rem;
-          color: #93c5fd;
+          color: #c2185b;
           font-weight: 700;
           text-align: center;
           line-height: 1.2;
@@ -409,85 +451,69 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
         }
         .sleep-feedback {
           position: absolute;
-          top: 50%;
+          top: 18px;
           left: 50%;
           transform: translate(-50%, -50%);
-          font-size: 1.3rem;
+          font-size: 1rem;
           font-weight: 800;
           pointer-events: none;
           z-index: 20;
           white-space: nowrap;
-          animation: feedback-pop 1.2s ease-out forwards;
+          background: rgba(255,255,255,.95);
+          border: 2px solid currentColor;
+          border-radius: 999px;
+          padding: 8px 16px;
+          box-shadow: 0 4px 12px rgba(160,120,80,.18);
         }
         .sleep-drag-hint {
-          position: relative;
-          z-index: 10;
-          text-align: center;
-          padding: 18px 20px 26px;
-          width: min(100% - 32px, 620px);
-          border-radius: 18px;
-          background: rgba(255,255,255,.08);
-          display: flex;
-          gap: 24px;
-          align-items: center;
-          justify-content: center;
-        }
-        .sleep-hint-left {
-          font-size: 0.8rem;
-          color: #64748b;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2px;
-        }
-        .sleep-hint-right {
-          font-size: 0.8rem;
-          color: #3b82f6;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2px;
+          display: none;
         }
         .sleep-done-overlay {
-          position: absolute;
+          position: fixed;
           inset: 0;
-          background: rgba(13,27,64,0.9);
+          background: rgba(160,120,80,0.75);
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 50;
-          border-radius: 16px;
+          z-index: 1000;
+          backdrop-filter: blur(3px);
         }
         .sleep-done-card {
-          background: linear-gradient(145deg, #1e3a8a, #1e40af);
-          border: 2px solid #3f6bc9;
+          background: #fff8ec;
+          border: 3px solid #c8a870;
           border-radius: 20px;
-          padding: 32px 36px;
+          padding: 36px 32px;
           text-align: center;
           animation: done-appear 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
-          max-width: 320px;
-          width: 90%;
+          max-width: 360px;
+          width: calc(100% - 32px);
+          box-sizing: border-box;
+          box-shadow: 0 8px 32px rgba(0,0,0,.25);
         }
         .sleep-done-title {
           font-size: 1.8rem;
           font-weight: 800;
-          color: #fff;
+          color: #a07850;
           margin-bottom: 8px;
         }
         .sleep-done-score {
           font-size: 3rem;
           font-weight: 900;
-          color: #60a5fa;
-          margin: 8px 0;
+          color: #a07850;
+          margin: 12px 0;
+          background: #fce9b0;
+          border-radius: 14px;
+          padding: 14px;
         }
         .sleep-done-msg {
           font-size: 1rem;
-          color: #93c5fd;
+          color: #7a5a34;
           margin-bottom: 20px;
           line-height: 1.4;
         }
         .sleep-done-btn {
-          background: linear-gradient(135deg, #3f6bc9, #2563eb);
+          width: 100%;
+          background: #a07850;
           color: white;
           border: none;
           border-radius: 12px;
@@ -506,10 +532,11 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
           transform: translateY(0);
         }
         .sleep-retry-btn {
-          margin-right: 8px;
-          background: transparent;
-          color: #bfdbfe;
-          border: 2px solid #60a5fa;
+          width: 100%;
+          margin: 0 0 10px;
+          background: #fff;
+          color: #7a5a34;
+          border: 2px solid #a07850;
           border-radius: 12px;
           padding: 10px 18px;
           font-size: 1rem;
@@ -543,8 +570,6 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
           ))}
         </div>
 
-        {/* Moon */}
-        <div className="sleep-moon">🌙</div>
 
         {/* Header */}
         <div className="sleep-header">
@@ -563,10 +588,12 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
 
         {/* Arena */}
         <div className="sleep-arena">
+          <div className="sleep-zone-divider sleep-zone-divider-left" />
+          <div className="sleep-zone-divider sleep-zone-divider-right" />
           {/* Left zone: trash/discard */}
-          <div className="sleep-zone-left">
-            <div className="sleep-trash">🗑️</div>
-            <div className="sleep-zone-left-label">Buang</div>
+          <div className={`sleep-zone-left${dropFeedback?.side === "left" ? ` drop-${dropFeedback.type}` : ""}`}>
+            <div className="sleep-trash">📱</div>
+            <div className="sleep-zone-left-label">Ganggu Tidur</div>
           </div>
 
           {/* Center item */}
@@ -592,9 +619,9 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
           )}
 
           {/* Room (right) */}
-          <div className="sleep-room">
-            <div className="sleep-room-emoji">🛏️</div>
-            <div className="sleep-room-label">Kamar<br />Bima</div>
+          <div className={`sleep-room${dropFeedback?.side === "right" ? ` drop-${dropFeedback.type}` : ""}`}>
+            <div className="sleep-room-emoji">🌙</div>
+            <div className="sleep-room-label">Siap<br />Tidur</div>
           </div>
 
           {/* Feedback pop */}
@@ -605,20 +632,6 @@ export default function SleepGame({ onComplete }: SleepGameProps) {
           )}
         </div>
 
-        {/* Bottom hint */}
-        {!isDone && (
-          <div className="sleep-drag-hint">
-            <div className="sleep-hint-left">
-              <span>👈 Seret kiri</span>
-              <span style={{ color: '#94a3b8' }}>Buang</span>
-            </div>
-            <div className="sleep-divider" />
-            <div className="sleep-hint-right">
-              <span>Seret kanan 👉</span>
-              <span>Masukkan ke kamar</span>
-            </div>
-          </div>
-        )}
 
         {/* Drag ghost */}
         {dragging && currentItem && (

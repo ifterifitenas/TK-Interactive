@@ -255,6 +255,10 @@ export default function MazeGame({ onComplete }: MazeGameProps) {
   }, [notification]);
 
   useEffect(() => {
+    if (gameOver) sfx.failure();
+  }, [gameOver]);
+
+  useEffect(() => {
     if (finished) sfx.completion();
   }, [finished]);
 

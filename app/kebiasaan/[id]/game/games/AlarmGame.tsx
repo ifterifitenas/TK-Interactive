@@ -51,7 +51,8 @@ export default function AlarmGame({ onComplete }: AlarmGameProps) {
     if (gameOverRef.current) return;
     gameOverRef.current = true;
     setGameOver(true);
-    sfx.completion();
+    if (livesRef.current <= 0) sfx.failure();
+    else sfx.completion();
     // Clear all timers
     if (spawnTimerRef.current) clearInterval(spawnTimerRef.current);
     if (countdownRef.current) clearInterval(countdownRef.current);

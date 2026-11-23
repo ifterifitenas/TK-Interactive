@@ -8,14 +8,13 @@ interface SimonGameProps {
 }
 
 const BUTTONS = [
-  { label: '👀 Lihat', color: '#4caf50', activeColor: '#00a83b', shadow: '#08752a' },
-  { label: '👋 Sapa', color: '#ffc107', activeColor: '#f08c00', shadow: '#a95700' },
-  { label: '😊 Senyum', color: '#ff9800', activeColor: '#e54800', shadow: '#9e2800' },
-  { label: '🤝 Jabat', color: '#2196f3', activeColor: '#0759c7', shadow: '#063b86' },
+  { color: '#78a5dc', activeColor: '#a9cdf5', shadow: '#5579b8' },
+  { color: '#d5ad7b', activeColor: '#efd09f', shadow: '#a07850' },
+  { color: '#d77f96', activeColor: '#f1adc0', shadow: '#b45d75' },
+  { color: '#70ae86', activeColor: '#a8d2b6', shadow: '#4c8b63' },
 ];
 
-const MAX_LEVEL = 5;
-const BASE_SEQ_LEN = 3; // level 1 starts with 3 steps
+const BASE_SEQ_LEN = 1;
 
 type GamePhase = 'idle' | 'showing' | 'waiting' | 'success' | 'fail' | 'done';
 
@@ -53,10 +52,14 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
     setPlayerIdx(0);
 
     let t = 400;
+    const levelSpeed = Math.max(300, 700 - (level - 1) * 35);
     seq.forEach((btnIdx, i) => {
       // highlight on
-      addTimeout(() => setActiveBtn(btnIdx), t);
-      t += 700;
+      addTimeout(() => {
+        setActiveBtn(btnIdx);
+        sfx.button(btnIdx);
+      }, t);
+      t += levelSpeed;
       // highlight off
       addTimeout(() => setActiveBtn(null), t);
       t += 200;
@@ -66,12 +69,12 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
     addTimeout(() => {
       setPhase('waiting');
     }, t + 100);
-  }, [addTimeout]);
+  }, [addTimeout, level]);
 
   // Generate new sequence for a level
   const startLevel = useCallback((lvl: number, existingSeq?: number[]) => {
     clearAllTimeouts();
-    const seqLen = BASE_SEQ_LEN + (lvl - 1); // 3,4,5,6,7
+    const seqLen = BASE_SEQ_LEN + (lvl - 1);
     let seq: number[];
     if (existingSeq) {
       seq = existingSeq;
@@ -100,6 +103,7 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
     if (phase !== 'waiting') return;
 
     // Brief visual feedback
+    sfx.button(idx);
     setActiveBtn(idx);
     addTimeout(() => setActiveBtn(null), 300);
 
@@ -137,19 +141,12 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
       setPhase('success');
       setFlashMsg(`Hebat! +${gained} poin`);
 
-      if (level >= MAX_LEVEL) {
-        addTimeout(() => {
-          setFlashMsg(null);
-          setPhase('done');
-        }, 1500);
-      } else {
-        const nextLevel = level + 1;
-        addTimeout(() => {
-          setFlashMsg(null);
-          setLevel(nextLevel);
-          startLevel(nextLevel);
-        }, 1500);
-      }
+      const nextLevel = level + 1;
+      addTimeout(() => {
+        setFlashMsg(null);
+        setLevel(nextLevel);
+        startLevel(nextLevel);
+      }, 1500);
     } else {
       setPlayerIdx(newPlayerIdx);
     }
@@ -159,8 +156,11 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
   useEffect(() => () => clearAllTimeouts(), [clearAllTimeouts]);
 
   useEffect(() => {
-    if (phase === 'done') sfx.completion();
-  }, [phase]);
+    if (phase === 'done') {
+      if (lives <= 0) sfx.failure();
+      else sfx.completion();
+    }
+  }, [phase, lives]);
 
   const heartsDisplay = Array.from({ length: 3 }, (_, i) => (
     <span key={i} style={{ opacity: i < lives ? 1 : 0.2, fontSize: '1.3rem' }}>❤️</span>
@@ -181,49 +181,67 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
         `}</style>
         <div style={{
           minHeight: '100vh',
-          background: '#eeeaff',
+          background: 'rgba(160,120,80,.75)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: 'sans-serif',
         }}>
           <div className="sg-done-card" style={{
-            background: '#fff',
+            background: '#fff8ec',
             borderRadius: '24px',
             padding: '40px 32px',
             textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(155,140,240,0.25)',
+            border: '3px solid #c8a870',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
             maxWidth: '340px',
             width: '90%',
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '8px' }}>🎉</div>
-            <h2 style={{ color: '#9b8cf0', fontSize: '1.6rem', margin: '0 0 8px' }}>Selesai!</h2>
-            <p style={{ color: '#555', marginBottom: '20px' }}>Kamu sudah mahir bermasyarakat!</p>
+            <h2 style={{ color: '#a07850', fontSize: '1.6rem', margin: '0 0 8px' }}>Selesai!</h2>
+            <p style={{ color: '#7a5a34', marginBottom: '20px' }}>Kamu sudah mahir bermasyarakat!</p>
             <div style={{
-              background: '#eeeaff',
+              background: '#fce9b0',
               borderRadius: '16px',
               padding: '16px 24px',
               marginBottom: '24px',
             }}>
-              <div style={{ fontSize: '0.9rem', color: '#9b8cf0', marginBottom: '4px' }}>Skor Akhir</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#7c6ed0' }}>{score}</div>
+              <div style={{ fontSize: '0.9rem', color: '#7a5a34', marginBottom: '4px' }}>Skor Akhir</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#a07850' }}>{score}</div>
             </div>
-            <button
-              onClick={onComplete}
-              style={{
-                background: '#9b8cf0',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '14px',
-                padding: '14px 48px',
-                fontSize: '1.1rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(155,140,240,0.4)',
-              }}
-            >
-              Lanjut →
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                onClick={handleStart}
+                style={{
+                  background: '#fff',
+                  color: '#7a5a34',
+                  border: '2px solid #a07850',
+                  borderRadius: '14px',
+                  padding: '14px 48px',
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                }}
+              >
+                Coba Lagi
+              </button>
+              <button
+                onClick={onComplete}
+                style={{
+                  background: '#a07850',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '14px',
+                  padding: '14px 48px',
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(160,120,80,0.35)',
+                }}
+              >
+                Lanjut →
+              </button>
+            </div>
           </div>
         </div>
       </>
@@ -281,7 +299,7 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
 
       <div style={{
         minHeight: '100vh',
-        background: 'linear-gradient(180deg, #e6e1ff 0%, #f6f3ff 58%, #e8f7ed 100%)',
+        background: 'linear-gradient(180deg, #f7f1df 0%, #fffaf0 58%, #edf7e8 100%)',
         fontFamily: 'sans-serif',
         display: 'flex',
         flexDirection: 'column',
@@ -291,19 +309,20 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
         <div style={{
           width: '100%',
           maxWidth: '760px',
-          background: 'linear-gradient(135deg, #9b8cf0, #6f63d8)',
-          borderRadius: '0 0 24px 24px',
+          background: '#a07850',
+          border: '3px solid #7a5a34',
+          borderRadius: '18px',
           padding: '16px 24px',
           color: '#fff',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          boxShadow: '0 4px 16px rgba(155,140,240,0.35)',
+          boxShadow: '0 5px 0 #7a5a34',
           boxSizing: 'border-box',
         }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '0.75rem', opacity: 0.85 }}>Level</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{phase === 'idle' ? '-' : level}/{MAX_LEVEL}</div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{phase === 'idle' ? '-' : level}</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '0.75rem', opacity: 0.85 }}>Nyawa</div>
@@ -317,12 +336,12 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
 
         {/* Title */}
         <div style={{ marginTop: '24px', marginBottom: '8px', textAlign: 'center', padding: '0 16px' }}>
-          <h1 style={{ fontSize: '1.4rem', color: '#7c6ed0', margin: 0, fontWeight: 'bold' }}>
-            🤝 Sambut Teman Baru
+          <h1 style={{ fontSize: '1.4rem', color: '#7a5a34', margin: 0, fontWeight: 'bold' }}>
+            Ingat Urutan Warna
           </h1>
           <p style={{ color: '#888', fontSize: '0.9rem', margin: '4px 0 0' }}>
             {phase === 'idle' && 'Tekan Mulai untuk bermain!'}
-            {phase === 'showing' && '👀 Perhatikan urutannya...'}
+            {phase === 'showing' && 'Perhatikan urutannya...'}
             {phase === 'waiting' && '👆 Sekarang giliranmu!'}
             {phase === 'success' && ''}
             {phase === 'fail' && ''}
@@ -352,11 +371,11 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
         {phase !== 'idle' && (
           <div style={{ width: 'min(100%, 620px)', marginBottom: '18px', background: 'rgba(255,255,255,.82)', borderRadius: '18px', padding: '12px 18px', boxShadow: '0 4px 12px rgba(124,110,208,.16)', boxSizing: 'border-box' }}>
             <div style={{ textAlign: 'center', color: '#6559bd', fontWeight: 800, marginBottom: '9px' }}>
-              Level {level} dari {MAX_LEVEL}
+              Level {level} · Urutan {sequence.length} langkah
             </div>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-              {Array.from({ length: MAX_LEVEL }, (_, i) => {
-                const lit = i < level;
+              {sequence.map((_, i) => {
+                const lit = i < playerIdx;
                 return (
                   <div
                     key={i}
@@ -377,13 +396,14 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
         {/* Buttons Grid */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '16px',
-          padding: '0 24px',
-          maxWidth: '620px',
+          gridTemplateColumns: 'repeat(2, 180px)',
+          gap: '22px',
+          padding: '0 16px',
+          maxWidth: '420px',
           width: '100%',
           boxSizing: 'border-box',
           marginBottom: '32px',
+          justifyContent: 'center',
         }}>
           {BUTTONS.map((btn, idx) => {
             const isActive = activeBtn === idx;
@@ -394,35 +414,20 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
                 onClick={() => handleBtnClick(idx)}
                 disabled={phase !== 'waiting'}
                 style={{
-                  minHeight: '150px',
-                  borderRadius: '24px',
-                  border: '3px solid rgba(255,255,255,.5)',
+                  width: '180px',
+                  height: '180px',
+                  borderRadius: '50%',
+                  border: '8px solid rgba(255,255,255,.92)',
                   background: isActive ? btn.activeColor : btn.color,
                   boxShadow: isActive
-                    ? `0 0 0 4px #fff, 0 0 24px ${btn.color}, 0 3px 0 ${btn.shadow}`
-                    : `0 6px 0 ${btn.shadow}, 0 8px 16px rgba(0,0,0,0.15)`,
-                  borderColor: isActive ? btn.shadow : 'rgba(255,255,255,.5)',
+                    ? `0 0 0 5px ${btn.shadow}, 0 0 28px ${btn.activeColor}, 0 8px 0 ${btn.shadow}`
+                    : `0 8px 0 ${btn.shadow}, 0 12px 20px rgba(160,120,80,.28), inset 0 10px 18px rgba(255,255,255,.28)`,
+                  borderColor: isActive ? btn.activeColor : btn.color,
                   cursor: phase === 'waiting' ? 'pointer' : 'default',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  opacity: phase === 'showing' && !isActive ? 0.65 : 1,
-                  transition: 'background 0.15s, box-shadow 0.15s, opacity 0.15s',
+                  transition: 'background 0.15s, box-shadow 0.15s, opacity 0.15s, transform 0.15s',
+                  padding: 0,
                 }}
               >
-                <span style={{ fontSize: '2rem', lineHeight: 1 }}>
-                  {btn.label.split(' ')[0]}
-                </span>
-                <span style={{
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold',
-                  color: '#fff',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.35)',
-                }}>
-                  {btn.label.split(' ').slice(1).join(' ')}
-                </span>
               </button>
             );
           })}
@@ -433,7 +438,7 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
           <button
             onClick={handleStart}
             style={{
-              background: '#9b8cf0',
+              background: '#a07850',
               color: '#fff',
               border: 'none',
               borderRadius: '14px',
@@ -441,10 +446,10 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
               fontSize: '1.1rem',
               fontWeight: 'bold',
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(155,140,240,0.4)',
+              boxShadow: '0 4px 12px rgba(160,120,80,0.35)',
             }}
           >
-            Mulai Bermain 🚀
+            Mulai
           </button>
         )}
 
@@ -458,7 +463,7 @@ export default function SimonGame({ onComplete }: SimonGameProps) {
             boxShadow: '0 2px 8px rgba(155,140,240,0.2)',
             animation: 'sg-flash 1s ease infinite',
           }}>
-            Perhatikan! 👀
+            Perhatikan!
           </div>
         )}
       </div>

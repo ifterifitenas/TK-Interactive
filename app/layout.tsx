@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ProgressProvider } from "@/lib/progress";
+import BackgroundMusic from "@/components/BackgroundMusic";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id">
       <body>
         <ProgressProvider>
+          <BackgroundMusic />
           <div className="shell">{children}</div>
         </ProgressProvider>
       </body>

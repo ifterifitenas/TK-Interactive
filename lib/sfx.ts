@@ -33,10 +33,21 @@ function tone(freq: number, at: number, dur: number, type: OscillatorType = "sin
 
 export const sfx = {
   tap: () => tone(660, 0, 0.08, "triangle", 0.1),
+  button: (index: number) => {
+    const frequencies = [392, 494, 587, 698];
+    tone(frequencies[index] ?? 440, 0, 0.28, "triangle", 0.18);
+  },
   correct: () => [523, 659, 784].forEach((f, i) => tone(f, i * 0.09, 0.28, "triangle")),
   wrong: () => {
     tone(300, 0, 0.18, "sine", 0.12);
     tone(240, 0.16, 0.28, "sine", 0.12);
+  },
+  failure: () => {
+    if (isMuted() || typeof window === "undefined") return;
+    const a = new Audio("/gagal.mp3");
+    a.loop = false;
+    a.volume = 0.8;
+    void a.play().catch(() => {});
   },
   cheer: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, i * 0.11, 0.32, "triangle")),
   spinTick: () => tone(850, 0, 0.03, "square", 0.06),
@@ -44,7 +55,7 @@ export const sfx = {
   completion: () => {
     if (isMuted() || typeof window === "undefined") return;
     // Hanya mainkan sekali — pastikan tidak loop
-    const a = new Audio("/completion.mp3");
+    const a = new Audio("/berhasil.mp3");
     a.loop = false;
     a.volume = 0.8;
     void a.play().catch(() => {});

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { sfx } from '@/lib/sfx';
 
 interface CatchGameProps {
   onComplete: () => void;
@@ -102,6 +103,7 @@ export default function CatchGame({ onComplete }: CatchGameProps) {
         if (prev <= 1) {
           gameOverRef.current = true;
           setGameOver(true);
+          sfx.completion();
           return 0;
         }
         return prev - 1;
@@ -182,6 +184,7 @@ export default function CatchGame({ onComplete }: CatchGameProps) {
             if (next <= 0) {
               gameOverRef.current = true;
               setGameOver(true);
+              sfx.failure();
             }
             return next;
           });
